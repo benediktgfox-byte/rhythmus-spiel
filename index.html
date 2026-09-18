@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rhythm Runner</title>
+<title>Beat Kart – Rhythmusrennen</title>
 
 <style>
 * {
@@ -12,187 +12,258 @@
 
 body {
   margin: 0;
+  overflow: hidden;
   font-family: Arial, sans-serif;
-  background: #14152b;
   color: white;
   text-align: center;
-  overflow-x: hidden;
+  background: #111936;
 }
 
 h1 {
-  margin: 12px 0 4px;
-  color: #ffd166;
+  margin: 8px 0 2px;
+  color: #ffe066;
+  text-shadow: 3px 3px #bd3b70;
 }
 
-#game {
-  width: min(100%, 900px);
-  margin: auto;
-}
-
-#info {
+#hud {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 18px;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px;
+  padding: 7px;
   font-weight: bold;
 }
 
-#scene {
+#game {
   position: relative;
-  height: 440px;
+  width: min(100%, 950px);
+  height: calc(100vh - 90px);
+  min-height: 480px;
+  margin: auto;
   overflow: hidden;
-  border: 4px solid #5145a4;
-  border-radius: 18px;
-  background:
-    linear-gradient(#292a63 0 65%, #20213e 65% 100%);
+  border: 5px solid #e85d75;
+  border-radius: 22px;
+  background: linear-gradient(#62c6ed 0 38%, #6dc56b 38% 100%);
 }
 
-.star {
+/* Himmel */
+.cloud {
   position: absolute;
-  color: #fff3a3;
-  font-size: 20px;
+  z-index: 1;
+  font-size: 42px;
+  opacity: .85;
 }
 
-.s1 { left: 10%; top: 12%; }
-.s2 { left: 32%; top: 22%; }
-.s3 { right: 20%; top: 10%; }
-.s4 { right: 8%; top: 30%; }
+.c1 { left: 8%; top: 8%; }
+.c2 { right: 12%; top: 16%; }
 
-#ground {
+/* Rennstrecke */
+#road {
   position: absolute;
+  left: 0;
   bottom: 0;
   width: 100%;
-  height: 125px;
-  background: repeating-linear-gradient(
-    45deg,
-    #36a269,
-    #36a269 18px,
-    #278052 18px,
-    #278052 36px
-  );
-  border-top: 8px solid #8b5a3c;
+  height: 63%;
+  background: #454557;
+  transform: perspective(400px) rotateX(8deg);
 }
 
-#player {
+#road::before,
+#road::after {
+  content: "";
   position: absolute;
-  left: 50px;
-  bottom: 125px;
-  font-size: 46px;
-  z-index: 5;
-  transition: left .6s ease, bottom .2s ease;
+  top: 0;
+  width: 20px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    #fff 0 35px,
+    #e85d75 35px 70px
+  );
 }
 
-#player.jump {
-  animation: jump .7s ease;
+#road::before { left: 0; }
+#road::after { right: 0; }
+
+.lane-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  opacity: .8;
+  background: repeating-linear-gradient(
+    to bottom,
+    #fff 0 45px,
+    transparent 45px 95px
+  );
+}
+
+.line1 { left: 33%; }
+.line2 { left: 66%; }
+
+/* Dekorationen */
+.tree {
+  position: absolute;
+  bottom: 43%;
+  z-index: 2;
+  font-size: 52px;
+}
+
+.t1 { left: 4%; }
+.t2 { right: 4%; }
+.t3 { left: 22%; transform: scale(.8); }
+.t4 { right: 24%; transform: scale(.8); }
+
+/* Kart */
+#kart {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  font-size: 58px;
+  transition: bottom .25s;
+}
+
+#kart.jumping {
+  animation: jump .75s ease;
 }
 
 @keyframes jump {
-  0% { bottom: 125px; }
-  50% { bottom: 230px; }
-  100% { bottom: 125px; }
+  0%   { bottom: 18%; }
+  45%  { bottom: 52%; }
+  100% { bottom: 18%; }
 }
 
-.platform {
-  position: absolute;
-  bottom: 210px;
-  width: 120px;
-  height: 18px;
-  border-radius: 10px;
-  background: #d99242;
-}
-
-.p1 { left: 210px; }
-.p2 { left: 430px; bottom: 270px; }
-.p3 { right: 80px; }
-
+/* Hindernisse bewegen sich nach links */
 .obstacle {
   position: absolute;
-  bottom: 125px;
-  font-size: 42px;
+  z-index: 7;
+  right: -100px;
+  bottom: 20%;
+  font-size: 48px;
+  animation: drive 3.3s linear forwards;
 }
 
-.o1 { left: 300px; }
-.o2 { left: 570px; }
-.o3 { right: 170px; }
+@keyframes drive {
+  from { right: -100px; }
+  to   { right: 110%; }
+}
 
-#task {
+/* Quizfenster */
+#quiz {
   display: none;
   position: absolute;
-  z-index: 10;
+  z-index: 20;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(90%, 500px);
+  width: min(92%, 560px);
   padding: 20px;
-  border: 4px solid #ffd166;
-  border-radius: 20px;
-  background: #24264e;
-  box-shadow: 0 0 30px #000;
+  transform: translate(-50%, -50%);
+  border: 5px solid #ffe066;
+  border-radius: 22px;
+  background: #252653;
+  box-shadow: 0 0 35px #111;
 }
 
-#symbol {
+#quiz h2 {
+  margin-top: 0;
+  color: #ffe066;
+}
+
+#note {
   margin: 12px;
-  font-size: 80px;
-  color: #ffd166;
+  font-size: 78px;
+  color: #ffe066;
+}
+
+#question {
+  font-size: 1.15rem;
 }
 
 #answers {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 15px;
 }
 
 button {
   padding: 13px;
   border: 0;
-  border-radius: 12px;
-  background: #7067d8;
+  border-radius: 13px;
   color: white;
-  font-size: 1.1rem;
+  background: #7167d8;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
+  box-shadow: 0 4px #484197;
 }
 
 button:hover {
-  background: #8e86ed;
+  background: #8e85ed;
 }
 
-#start,
-#continue {
-  margin: 12px;
+button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px #484197;
+}
+
+#jumpButton,
+#startButton {
+  position: absolute;
+  z-index: 15;
+  bottom: 18px;
+  padding: 16px 26px;
+  border-radius: 18px;
   background: #ef8354;
+  font-size: 1.15rem;
+  box-shadow: 0 5px #ae4f2c;
+}
+
+#jumpButton {
+  right: 20px;
+}
+
+#startButton {
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 #message {
-  min-height: 28px;
-  padding: 8px;
-  color: #ffd166;
+  position: absolute;
+  z-index: 16;
+  top: 10px;
+  left: 50%;
+  width: 90%;
+  transform: translateX(-50%);
+  color: #fff;
   font-weight: bold;
+  text-shadow: 2px 2px #222;
 }
 
-.correct {
-  color: #75e06f;
-}
-
-.wrong {
-  color: #ff6b6b;
-}
+.good { color: #79e879; }
+.bad { color: #ff8585; }
 
 @media (max-width: 600px) {
-  #scene {
-    height: 390px;
+  h1 { font-size: 1.45rem; }
+
+  #game {
+    min-height: 450px;
+    border-width: 3px;
   }
 
-  #player {
-    left: 25px;
+  #kart {
+    font-size: 48px;
   }
 
-  .platform {
-    transform: scale(.75);
+  #jumpButton {
+    right: 12px;
+    bottom: 12px;
   }
 
-  .obstacle {
-    transform: scale(.8);
+  #answers {
+    grid-template-columns: 1fr;
   }
 }
 </style>
@@ -200,190 +271,366 @@ button:hover {
 
 <body>
 
+<h1>🏎️ Beat Kart</h1>
+
+<div id="hud">
+  <span>❤️ Leben: <b id="lives">3</b></span>
+  <span>⭐ Punkte: <b id="score">0</b></span>
+  <span>🏁 Frage: <b id="number">0</b>/15</span>
+</div>
+
 <div id="game">
-  <h1>🎵 Rhythm Runner</h1>
-  <p>Springe über Hindernisse und löse die Rhythmus-Aufgaben!</p>
+  <div class="cloud c1">☁️</div>
+  <div class="cloud c2">☁️</div>
 
-  <div id="info">
-    <span>❤️ Leben: <b id="lives">3</b></span>
-    <span>⭐ Punkte: <b id="score">0</b></span>
-    <span>🏁 Level: <b id="level">1</b></span>
+  <div class="tree t1">🌲</div>
+  <div class="tree t2">🌴</div>
+  <div class="tree t3">🌲</div>
+  <div class="tree t4">🌴</div>
+
+  <div id="road">
+    <div class="lane-line line1"></div>
+    <div class="lane-line line2"></div>
   </div>
 
-  <div id="scene">
-    <span class="star s1">✦</span>
-    <span class="star s2">✦</span>
-    <span class="star s3">✦</span>
-    <span class="star s4">✦</span>
+  <div id="kart">🏎️</div>
 
-    <div class="platform p1"></div>
-    <div class="platform p2"></div>
-    <div class="platform p3"></div>
+  <div id="message">Starte das Rhythmusrennen!</div>
 
-    <div class="obstacle o1">🪨</div>
-    <div class="obstacle o2">🌵</div>
-    <div class="obstacle o3">🔥</div>
+  <button id="startButton">▶️ Rennen starten</button>
+  <button id="jumpButton" style="display:none">⬆️ SPRINGEN</button>
 
-    <div id="ground"></div>
-    <div id="player">🧑‍🎤</div>
-
-    <div id="task">
-      <h2>🎼 Rhythmus-Aufgabe</h2>
-      <p>Wie viele Zählzeiten hat dieses Zeichen?</p>
-      <div id="symbol">♩</div>
-      <div id="answers"></div>
-      <p id="taskMessage"></p>
-    </div>
-  </div>
-
-  <div id="message">Bereit für das Abenteuer?</div>
-  <button id="start">▶️ Spiel starten</button>
-  <button id="continue" style="display:none">➡️ Weiterlaufen</button>
+  <section id="quiz">
+    <h2>🎼 Rhythmus-Check!</h2>
+    <p id="question"></p>
+    <div id="note"></div>
+    <div id="answers"></div>
+    <p id="quizMessage"></p>
+  </section>
 </div>
 
 <script>
-const tasks = [
-  { symbol: "♩", answer: "1", options: ["0,5", "1", "2"] },
-  { symbol: "𝅗𝅥", answer: "2", options: ["1", "2", "4"] },
-  { symbol: "𝅝", answer: "4", options: ["2", "3", "4"] },
-  { symbol: "♪", answer: "0,5", options: ["0,5", "1", "2"] }
+/*
+  Die Notenwerte:
+  Ganze Note = 4 Zählzeiten
+  Halbe Note = 2 Zählzeiten
+  Viertelnote = 1 Zählzeit
+  Achtelnote = 0,5 Zählzeiten
+*/
+
+const notes = [
+  { symbol: "𝅝", name: "Ganze Note", value: 4, text: "4" },
+  { symbol: "𝅗𝅥", name: "Halbe Note", value: 2, text: "2" },
+  { symbol: "♩", name: "Viertelnote", value: 1, text: "1" },
+  { symbol: "♪", name: "Achtelnote", value: 0.5, text: "0,5" }
 ];
 
-let currentTask = 0;
+let allQuestions = [];
+let selectedQuestions = [];
+let questionIndex = 0;
 let score = 0;
 let lives = 3;
-let level = 1;
-let playing = false;
-let taskOpen = false;
+let running = false;
+let quizOpen = false;
+let obstacleTimer;
 
-const player = document.getElementById("player");
-const taskBox = document.getElementById("task");
-const symbolBox = document.getElementById("symbol");
-const answersBox = document.getElementById("answers");
-const taskMessage = document.getElementById("taskMessage");
-const message = document.getElementById("message");
+/* Erzeugt weit mehr als 80 verschiedene Fragen */
+function createQuestions() {
+  const questions = [];
 
-function updateInfo() {
-  document.getElementById("lives").textContent = lives;
-  document.getElementById("score").textContent = score;
-  document.getElementById("level").textContent = level;
-}
+  notes.forEach(note => {
+    questions.push({
+      note,
+      text: `Wie viele Zählzeiten hat eine ${note.name}?`,
+      answer: note.text
+    });
 
-function movePlayer() {
-  if (!playing || taskOpen) return;
+    questions.push({
+      note,
+      text: `Welcher Notenwert ist hier zu sehen?`,
+      answer: note.text
+    });
 
-  const newPosition = Math.min(
-    player.offsetLeft + 105,
-    document.getElementById("scene").clientWidth - 80
-  );
+    questions.push({
+      note,
+      text: `Wie lange wird dieses Zeichen gehalten?`,
+      answer: note.text
+    });
 
-  player.style.left = newPosition + "px";
-  player.classList.add("jump");
+    questions.push({
+      note,
+      text: `Wie viele Zählzeiten dauert dieses Symbol?`,
+      answer: note.text
+    });
 
-  setTimeout(() => {
-    player.classList.remove("jump");
-  }, 700);
+    questions.push({
+      note,
+      text: `Welche Zahl passt zu dieser ${note.name}?`,
+      answer: note.text
+    });
 
-  if (currentTask < tasks.length) {
-    setTimeout(openTask, 750);
-  } else {
-    winGame();
-  }
-}
+    questions.push({
+      note,
+      text: `Bestimme die Länge dieser Note.`,
+      answer: note.text
+    });
 
-function openTask() {
-  if (!playing) return;
+    questions.push({
+      note,
+      text: `Wie viele Schläge zählt dieses Notenzeichen?`,
+      answer: note.text
+    });
 
-  taskOpen = true;
-  const task = tasks[currentTask];
+    questions.push({
+      note,
+      text: `Welche Zählzeit gehört zu diesem Symbol?`,
+      answer: note.text
+    });
 
-  symbolBox.textContent = task.symbol;
-  answersBox.innerHTML = "";
-  taskMessage.textContent = "";
+    questions.push({
+      note,
+      text: `Erkennst du den Notenwert?`,
+      answer: note.text
+    });
 
-  task.options.forEach(option => {
-    const button = document.createElement("button");
-    button.textContent = option;
-    button.onclick = () => checkAnswer(option);
-    answersBox.appendChild(button);
+    questions.push({
+      note,
+      text: `Wie viele Zählzeiten musst du klatschen?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Wie lang klingt diese Note im 4/4-Takt?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Wähle die richtige Dauer aus.`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Welche Antwort ist musikalisch richtig?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Wie viele Grundschläge nimmt diese Note ein?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Finde die passende Zählzeit.`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Wie lange bleibt der Ton bestehen?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Welche Zahl beschreibt diesen Notenwert?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Wie viele Zählzeiten verstecken sich hier?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Richtig zuhören und auswählen: Wie lang ist die Note?`,
+      answer: note.text
+    });
+
+    questions.push({
+      note,
+      text: `Letzte Chance: Wie viele Zählzeiten sind es?`,
+      answer: note.text
+    });
   });
 
-  taskBox.style.display = "block";
+  return questions;
+}
+
+function shuffle(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+function updateHud() {
+  document.getElementById("lives").textContent = lives;
+  document.getElementById("score").textContent = score;
+  document.getElementById("number").textContent =
+    Math.min(questionIndex, 15);
+}
+
+function startGame() {
+  allQuestions = createQuestions();
+  selectedQuestions = shuffle(allQuestions).slice(0, 15);
+
+  questionIndex = 0;
+  score = 0;
+  lives = 3;
+  running = true;
+  quizOpen = false;
+
+  updateHud();
+
+  document.getElementById("startButton").style.display = "none";
+  document.getElementById("jumpButton").style.display = "block";
+  document.getElementById("message").textContent =
+    "Das Kart fährt automatisch – springe über Hindernisse!";
+
+  clearInterval(obstacleTimer);
+  obstacleTimer = setInterval(createObstacle, 2600);
+}
+
+function jump() {
+  if (!running || quizOpen) return;
+
+  const kart = document.getElementById("kart");
+  kart.classList.remove("jumping");
+  void kart.offsetWidth;
+  kart.classList.add("jumping");
+
+  setTimeout(() => {
+    if (running && questionIndex < 15) {
+      showQuestion();
+    }
+  }, 800);
+}
+
+function createObstacle() {
+  if (!running || quizOpen) return;
+
+  const obstacle = document.createElement("div");
+  obstacle.className = "obstacle";
+
+  const choices = ["🪨", "🌵", "🛢️", "🚧", "🔥"];
+  obstacle.textContent =
+    choices[Math.floor(Math.random() * choices.length)];
+
+  obstacle.style.bottom = `${18 + Math.random() * 9}%`;
+  document.getElementById("game").appendChild(obstacle);
+
+  setTimeout(() => obstacle.remove(), 3500);
+
+  setTimeout(() => {
+    if (running && !quizOpen && questionIndex < 15) {
+      showQuestion();
+    }
+  }, 1800);
+}
+
+function showQuestion() {
+  if (quizOpen || questionIndex >= 15) return;
+
+  quizOpen = true;
+  const current = selectedQuestions[questionIndex];
+
+  document.getElementById("quiz").style.display = "block";
+  document.getElementById("question").textContent = current.text;
+  document.getElementById("note").textContent = current.note.symbol;
+  document.getElementById("quizMessage").textContent = "";
+
+  const wrongAnswers = notes
+    .map(note => note.text)
+    .filter(value => value !== current.answer);
+
+  const answers = shuffle([
+    current.answer,
+    ...shuffle(wrongAnswers).slice(0, 3)
+  ]);
+
+  const answersBox = document.getElementById("answers");
+  answersBox.innerHTML = "";
+
+  answers.forEach(answer => {
+    const button = document.createElement("button");
+    button.textContent = `${answer} Zählzeit${answer === "1" ? "" : "en"}`;
+    button.onclick = () => checkAnswer(answer);
+    answersBox.appendChild(button);
+  });
 }
 
 function checkAnswer(answer) {
-  const task = tasks[currentTask];
+  const current = selectedQuestions[questionIndex];
+  const quizMessage = document.getElementById("quizMessage");
 
-  if (answer === task.answer) {
+  if (answer === current.answer) {
     score += 100;
-    taskMessage.textContent = "✅ Richtig! Du darfst weiterlaufen.";
-    taskMessage.className = "correct";
+    quizMessage.textContent = "✅ Richtig! Das Kart fährt weiter.";
+    quizMessage.className = "good";
 
-    setTimeout(() => {
-      taskBox.style.display = "none";
-      taskOpen = false;
-      currentTask++;
-      level = Math.min(3, Math.floor(currentTask / 2) + 1);
-      updateInfo();
-
-      if (currentTask >= tasks.length) {
-        winGame();
-      } else {
-        message.textContent = "Gut gemacht! Springe zum nächsten Hindernis.";
-      }
-    }, 800);
+    setTimeout(closeQuestion, 700);
   } else {
     lives--;
-    updateInfo();
+    updateHud();
 
-    taskMessage.textContent = "❌ Leider falsch. Versuch es noch einmal.";
-    taskMessage.className = "wrong";
+    quizMessage.textContent = "❌ Falsch! Du verlierst ein Leben.";
+    quizMessage.className = "bad";
 
     if (lives <= 0) {
-      gameOver();
+      setTimeout(gameOver, 700);
     }
   }
 }
 
-function winGame() {
-  playing = false;
-  taskOpen = false;
-  taskBox.style.display = "none";
-  message.textContent = "🏆 Glückwunsch! Du hast das Rhythmus-Level geschafft!";
-  document.getElementById("continue").style.display = "none";
+function closeQuestion() {
+  document.getElementById("quiz").style.display = "none";
+  quizOpen = false;
+  questionIndex++;
+  updateHud();
+
+  if (questionIndex >= 15) {
+    winGame();
+  } else {
+    document.getElementById("message").textContent =
+      "Hindernis voraus – bereit zum Springen?";
+  }
 }
 
 function gameOver() {
-  playing = false;
-  taskOpen = false;
-  taskBox.style.display = "none";
-  message.textContent = "💥 Game Over! Starte das Spiel erneut.";
-  document.getElementById("start").style.display = "inline-block";
-  document.getElementById("continue").style.display = "none";
+  running = false;
+  quizOpen = false;
+  clearInterval(obstacleTimer);
+
+  document.getElementById("quiz").style.display = "none";
+  document.getElementById("jumpButton").style.display = "none";
+  document.getElementById("startButton").style.display = "block";
+  document.getElementById("startButton").textContent = "🔄 Nochmal fahren";
+  document.getElementById("message").textContent =
+    "💥 Rennen vorbei! Versuche es noch einmal.";
 }
 
-document.getElementById("start").onclick = () => {
-  currentTask = 0;
-  score = 0;
-  lives = 3;
-  level = 1;
-  playing = true;
-  taskOpen = false;
+function winGame() {
+  running = false;
+  clearInterval(obstacleTimer);
 
-  player.style.left = "50px";
-  updateInfo();
+  document.getElementById("jumpButton").style.display = "none";
+  document.getElementById("startButton").style.display = "block";
+  document.getElementById("startButton").textContent = "🏆 Neues Rennen";
+  document.getElementById("message").textContent =
+    "🏁 Ziel erreicht! Du hast alle 15 Rhythmusfragen geschafft!";
+}
 
-  document.getElementById("start").style.display = "none";
-  document.getElementById("continue").style.display = "inline-block";
-  message.textContent = "Laufe los und löse die Aufgaben!";
-};
-
-document.getElementById("continue").onclick = movePlayer;
+document.getElementById("startButton").onclick = startGame;
+document.getElementById("jumpButton").onclick = jump;
 
 document.addEventListener("keydown", event => {
-  if (event.code === "Space" || event.code === "ArrowRight") {
+  if (event.code === "Space" || event.code === "ArrowUp") {
     event.preventDefault();
-    movePlayer();
+    jump();
   }
 });
 </script>
