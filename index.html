@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notendorf – Das Rhythmus-Abenteuer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      color: #243047;
+      background: linear-gradient(#a9e8ff, #e5f7ff);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 12px 0 4px;
+      color: #4c2d72;
+    }
+
+    p {
+      margin: 6px;
+    }
+
+    #game {
+      width: min(100% - 20px, 900px);
+      margin: auto;
+    }
+
+    #status {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px;
+      margin: 10px 0;
+      background: #ffffffcc;
+      border-radius: 14px;
+      font-weight: bold;
+    }
+
+    #map {
+      position: relative;
+      min-height: 430px;
+      overflow: hidden;
+      border: 5px solid #68499b;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 20% 20%, #ffffff 0 3%, transparent 4%),
+        radial-gradient(circle at 75% 15%, #ffffff 0 4%, transparent 5%),
+        linear-gradient(#72d4f2 0 48%, #82cf69 48% 100%);
+    }
+
+    .cloud {
+      position: absolute;
+      font-size: 42px;
+      opacity: .8;
+    }
+
+    .cloud.one { left: 8%; top: 8%; }
+    .cloud.two { right: 10%; top: 18%; }
+
+    .place {
+      position: absolute;
+      padding: 14px 10px;
+      min-width: 120px;
+      border: 3px solid #61458c;
+      border-radius: 18px;
+      background: #fff7cf;
+      box-shadow: 0 5px 0 #b18d45;
+      font-weight: bold;
+    }
+
+    .village { left: 8%; bottom: 20%; }
+    .bridge { left: 43%; bottom: 28%; }
+    .forest { right: 7%; bottom: 16%; }
+
+    .locked {
+      filter: grayscale(1);
+      opacity: .65;
+    }
+
+    #player {
+      position: absolute;
+      left: 25%;
+      bottom: 8%;
+      font-size: 42px;
+      transition: .5s;
+      animation: bounce 1.2s infinite alternate;
+    }
+
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-7px); }
+    }
+
+    #message {
+      min-height: 28px;
+      margin: 10px;
+      font-weight: bold;
+      color: #633d8f;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 15px;
+      margin: 4px;
+      background: #734bb0;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #4b2a78;
+    }
+
+    button:hover {
+      background: #8c65c4;
+    }
+
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #4b2a78;
+    }
+
+    button:disabled {
+      background: #aaa;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    #panel {
+      display: none;
+      margin: 14px auto;
+      padding: 18px;
+      background: #fff;
+      border-radius: 18px;
+      border: 3px solid #68499b;
+    }
+
+    #selectedNotes {
+      min-height: 45px;
+      margin: 12px auto;
+      padding: 10px;
+      background: #f2eaff;
+      border-radius: 12px;
+      font-size: 1.5rem;
+    }
+
+    .note {
+      min-width: 90px;
+      background: #e99443;
+      box-shadow: 0 3px 0 #a55b1f;
+    }
+
+    .note small {
+      display: block;
+      font-size: .75rem;
+    }
+
+    #success {
+      display: none;
+      font-size: 1.4rem;
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      #map {
+        min-height: 360px;
+      }
+
+      .place {
+        min-width: 95px;
+        font-size: .85rem;
+        padding: 10px 5px;
+      }
+
+      #player {
+        font-size: 34px;
+      }
+
+      button {
+        font-size: .9rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="game">
+    <h1>🎵 Notendorf</h1>
+    <p>Das Rhythmus-Abenteuer</p>
+
+    <section id="status">
+      <span>⭐ Punkte: <b id="points">0</b></span>
+      <span>🔓 Bereiche: <b id="areas">1</b>/3</span>
+      <span>🎒 Belohnung: <b id="reward">Keine</b></span>
+    </section>
+
+    <section id="map">
+      <div class="cloud one">☁️</div>
+      <div class="cloud two">☁️</div>
+
+      <div class="place village">
+        🏘️<br>
+        Notendorf
+      </div>
+
+      <div class="place bridge">
+        🌉<br>
+        Rhythmusbrücke
+      </div>
+
+      <div class="place forest locked" id="forest">
+        🌲<br>
+        Klangwald 🔒
+      </div>
+
+      <div id="player">🧑‍🎤</div>
+    </section>
+
+    <div id="message">
+      Willkommen in Notendorf! Öffne die Rhythmusbrücke.
+    </div>
+
+    <button id="startButton">🎼 Brücke untersuchen</button>
+
+    <section id="panel">
+      <h2>🔐 Die Rhythmusbrücke</h2>
+      <p>
+        Stelle genau <strong>4 Zählzeiten</strong> zusammen.
+        Wähle passende Noten aus:
+      </p>
+
+      <div id="notes"></div>
+
+      <div id="selectedNotes">Noch keine Noten ausgewählt</div>
+      <p>Aktuelle Zählzeiten: <strong id="beats">0</strong> / 4</p>
+
+      <button id="checkButton">✅ Lösung prüfen</button>
+      <button id="clearButton">↩️ Zurücksetzen</button>
+
+      <div id="success">
+        🎉 Geschafft! Die Brücke ist geöffnet!
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const noteTypes = [
+      { symbol: "𝅝", name: "Ganze Note", beats: 4 },
+      { symbol: "𝅗𝅥", name: "Halbe Note", beats: 2 },
+      { symbol: "♩", name: "Viertelnote", beats: 1 },
+      { symbol: "♪", name: "Achtelnote", beats: 0.5 }
+    ];
+
+    let selected = [];
+    let points = 0;
+    let bridgeSolved = false;
+
+    const panel = document.getElementById("panel");
+    const notesBox = document.getElementById("notes");
+    const selectedBox = document.getElementById("selectedNotes");
+    const beatsText = document.getElementById("beats");
+    const message = document.getElementById("message");
+    const player = document.getElementById("player");
+    const forest = document.getElementById("forest");
+    const reward = document.getElementById("reward");
+
+    function renderNotes() {
+      notesBox.innerHTML = "";
+
+      noteTypes.forEach(note => {
+        const button = document.createElement("button");
+        button.className = "note";
+        button.innerHTML = `${note.symbol}<small>${note.name}<br>${note.beats} Zählzeit${note.beats !== 1 ? "en" : ""}</small>`;
+
+        button.onclick = () => {
+          const total = selected.reduce((sum, n) => sum + n.beats, 0);
+
+          if (total + note.beats <= 4) {
+            selected.push(note);
+            renderSelected();
+          } else {
+            message.textContent = "⚠️ Das wären mehr als 4 Zählzeiten.";
+          }
+        };
+
+        notesBox.appendChild(button);
+      });
+    }
+
+    function renderSelected() {
+      if (selected.length === 0) {
+        selectedBox.textContent = "Noch keine Noten ausgewählt";
+      } else {
+        selectedBox.textContent = selected.map(note => note.symbol).join("  ");
+      }
+
+      const total = selected.reduce((sum, n) => sum + n.beats, 0);
+      beatsText.textContent = total;
+    }
+
+    document.getElementById("startButton").onclick = () => {
+      panel.style.display = "block";
+      document.getElementById("startButton").disabled = true;
+      message.textContent = "Wähle Noten aus, deren Summe genau 4 ergibt.";
+      renderNotes();
+    };
+
+    document.getElementById("clearButton").onclick = () => {
+      selected = [];
+      renderSelected();
+      message.textContent = "Die Auswahl wurde zurückgesetzt.";
+    };
+
+    document.getElementById("checkButton").onclick = () => {
+      const total = selected.reduce((sum, n) => sum + n.beats, 0);
+
+      if (total === 4) {
+        bridgeSolved = true;
+        points += 100;
+
+        document.getElementById("points").textContent = points;
+        document.getElementById("areas").textContent = "2";
+        reward.textContent = "Rhythmus-Schlüssel";
+        forest.classList.remove("locked");
+
+        player.style.left = "54%";
+        message.textContent = "🌉 Die Spielfigur überquert die Brücke!";
+
+        document.getElementById("success").style.display = "block";
+        document.getElementById("checkButton").disabled = true;
+      } else {
+        message.textContent = "❌ Noch nicht richtig. Die Summe muss genau 4 sein.";
+      }
+    };
+
+    forest.onclick = () => {
+      if (!bridgeSolved) {
+        message.textContent = "🔒 Der Klangwald ist noch verschlossen.";
+      } else {
+        points += 50;
+        document.getElementById("points").textContent = points;
+        reward.textContent = "Klangwald-Abzeichen";
+        document.getElementById("areas").textContent = "3";
+        player.style.left = "80%";
+        message.textContent = "🌲 Willkommen im Klangwald! Ein neues Gebiet wurde entdeckt.";
+      }
+    };
+  </script>
+</body>
+</html>
