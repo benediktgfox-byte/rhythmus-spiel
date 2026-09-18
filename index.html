@@ -1,786 +1,1160 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beat Kart – Rhythmusrennen</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notenwerte Quiz 2.0</title>
 
-<style>
-* {
-  box-sizing: border-box;
-}
+  <style>
+    :root {
+      --bg1: #7c3aed;
+      --bg2: #06b6d4;
+      --card: rgba(255, 255, 255, 0.92);
+      --dark: #1f2937;
+      --muted: #6b7280;
+      --primary: #7c3aed;
+      --primary2: #06b6d4;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --warning: #f59e0b;
+      --white: #ffffff;
+      --shadow: 0 20px 50px rgba(0,0,0,0.22);
+    }
 
-body {
-  margin: 0;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-  color: white;
-  text-align: center;
-  background: #111936;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-h1 {
-  margin: 8px 0 2px;
-  color: #ffe066;
-  text-shadow: 3px 3px #bd3b70;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--dark);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.35), transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
 
-#hud {
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  padding: 7px;
-  font-weight: bold;
-}
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
 
-#game {
-  position: relative;
-  width: min(100%, 950px);
-  height: calc(100vh - 90px);
-  min-height: 480px;
-  margin: auto;
-  overflow: hidden;
-  border: 5px solid #e85d75;
-  border-radius: 22px;
-  background: linear-gradient(#62c6ed 0 38%, #6dc56b 38% 100%);
-}
+    .quiz-shell {
+      width: min(1000px, 100%);
+      background: var(--card);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+      border: 3px solid rgba(255,255,255,0.6);
+    }
 
-/* Himmel */
-.cloud {
-  position: absolute;
-  z-index: 1;
-  font-size: 42px;
-  opacity: .85;
-}
+    header {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(6,182,212,0.95));
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-.c1 { left: 8%; top: 8%; }
-.c2 { right: 12%; top: 16%; }
+    .title-area h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 4vw, 2.7rem);
+      letter-spacing: -0.04em;
+    }
 
-/* Rennstrecke */
-#road {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 63%;
-  background: #454557;
-  transform: perspective(400px) rotateX(8deg);
-}
+    .title-area p {
+      margin: 6px 0 0;
+      opacity: 0.95;
+      font-size: 1rem;
+    }
 
-#road::before,
-#road::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 20px;
-  height: 100%;
-  background: repeating-linear-gradient(
-    to bottom,
-    #fff 0 35px,
-    #e85d75 35px 70px
-  );
-}
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-#road::before { left: 0; }
-#road::after { right: 0; }
+    .badge {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.4);
+      backdrop-filter: blur(10px);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
 
-.lane-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  opacity: .8;
-  background: repeating-linear-gradient(
-    to bottom,
-    #fff 0 45px,
-    transparent 45px 95px
-  );
-}
+    main {
+      padding: 28px;
+    }
 
-.line1 { left: 33%; }
-.line2 { left: 66%; }
+    .start-screen,
+    .quiz-screen,
+    .result-screen {
+      display: none;
+    }
 
-/* Dekorationen */
-.tree {
-  position: absolute;
-  bottom: 43%;
-  z-index: 2;
-  font-size: 52px;
-}
+    .active {
+      display: block;
+    }
 
-.t1 { left: 4%; }
-.t2 { right: 4%; }
-.t3 { left: 22%; transform: scale(.8); }
-.t4 { right: 24%; transform: scale(.8); }
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 24px;
+      align-items: center;
+    }
 
-/* Kart */
-#kart {
-  position: absolute;
-  z-index: 8;
-  left: 18%;
-  bottom: 17%;
-  width: 76px;
-  height: 52px;
-  font-size: 48px;
-  transform: translateX(-50%);
-  transition: bottom .15s ease;
-  filter: drop-shadow(0 8px 3px #1118);
-}
+    .hero-text h2 {
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      margin: 0 0 12px;
+      line-height: 1.05;
+    }
 
-#kart::after {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 8px;
-  bottom: -8px;
-  height: 12px;
-  border-radius: 50%;
-  background: #1118;
-  filter: blur(3px);
-}
+    .hero-text p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
 
-#kart.jumping {
-  animation: kartJump .75s cubic-bezier(.2,.8,.4,1);
-}
+    .feature-grid {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
 
-@keyframes kartJump {
-  0% {
-    bottom: 17%;
-    transform: translateX(-50%) rotate(0deg);
-  }
+    .feature {
+      background: white;
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      font-weight: 700;
+    }
 
-  45% {
-    bottom: 53%;
-    transform: translateX(-50%) rotate(-8deg);
-  }
+    .mascot {
+      background: linear-gradient(135deg, #fef3c7, #fbcfe8);
+      border-radius: 30px;
+      min-height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.7);
+      padding: 20px;
+    }
 
-  100% {
-    bottom: 17%;
-    transform: translateX(-50%) rotate(0deg);
-  }
-}
-}
+    .mascot .note {
+      font-size: clamp(5rem, 14vw, 9rem);
+      animation: float 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.18));
+    }
 
-#kart.jumping {
-  animation: jump .75s ease;
-}
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-16px) rotate(5deg); }
+    }
 
-@keyframes jump {
-  0%   { bottom: 18%; }
-  45%  { bottom: 52%; }
-  100% { bottom: 18%; }
-}
+    .btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 18px;
+      padding: 15px 22px;
+      font-size: 1rem;
+      font-weight: 900;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
 
-/* Hindernisse bewegen sich nach links */
-.obstacle {
-  position: absolute;
-  z-index: 7;
-  left: 100%;
-  bottom: 18%;
-  width: 58px;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  font-size: 42px;
-  animation: obstacleMove 4s linear forwards;
-  filter: drop-shadow(0 7px 3px #1118);
-}
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+    }
 
-@keyframes obstacleMove {
-  from {
-    left: 105%;
-  }
+    .btn:active {
+      transform: translateY(0);
+    }
 
-  to {
-    left: -100px;
-  }
-}
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      box-shadow: 0 12px 24px rgba(124,58,237,0.28);
+    }
 
-.obstacle.hit {
-  animation: hit .45s ease forwards;
-}
+    .btn-secondary {
+      background: white;
+      color: var(--primary);
+      border: 2px solid rgba(124,58,237,0.25);
+    }
 
-@keyframes hit {
-  50% {
-    transform: scale(1.5) rotate(20deg);
-    filter: brightness(2);
-  }
+    .start-actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-  100% {
-    opacity: 0;
-    transform: scale(.2);
-  }
-}
-}
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
 
-@keyframes drive {
-  from { right: -100px; }
-  to   { right: 110%; }
-}
+    .stat {
+      background: white;
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+    }
 
-/* Quizfenster */
-#quiz {
-  display: none;
-  position: absolute;
-  z-index: 20;
-  left: 50%;
-  top: 50%;
-  width: min(92%, 560px);
-  padding: 20px;
-  transform: translate(-50%, -50%);
-  border: 5px solid #ffe066;
-  border-radius: 22px;
-  background: #252653;
-  box-shadow: 0 0 35px #111;
-}
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
 
-#quiz h2 {
-  margin-top: 0;
-  color: #ffe066;
-}
+    .stat strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.35rem;
+    }
 
-#note {
-  margin: 12px;
-  font-size: 78px;
-  color: #ffe066;
-}
+    .progress-outer {
+      height: 14px;
+      background: rgba(31,41,55,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 22px;
+    }
 
-#question {
-  font-size: 1.15rem;
-}
+    .progress-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      border-radius: inherit;
+      transition: width 0.3s ease;
+    }
 
-#answers {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 15px;
-}
+    .question-card {
+      background: white;
+      border-radius: 28px;
+      padding: 26px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
 
-button {
-  padding: 13px;
-  border: 0;
-  border-radius: 13px;
-  color: white;
-  background: #7167d8;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px #484197;
-}
+    .type-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
 
-button:hover {
-  background: #8e85ed;
-}
+    .question-title {
+      font-size: clamp(1.35rem, 3vw, 2.1rem);
+      margin: 0 0 18px;
+      line-height: 1.25;
+    }
 
-button:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px #484197;
-}
+    .big-note {
+      font-size: clamp(4rem, 12vw, 7rem);
+      line-height: 1;
+      text-align: center;
+      margin: 14px 0 20px;
+      color: var(--primary);
+      text-shadow: 0 8px 20px rgba(124,58,237,0.18);
+    }
 
-#jumpButton,
-#startButton {
-  position: absolute;
-  z-index: 15;
-  bottom: 18px;
-  padding: 16px 26px;
-  border-radius: 18px;
-  background: #ef8354;
-  font-size: 1.15rem;
-  box-shadow: 0 5px #ae4f2c;
-}
+    .measure {
+      margin: 18px auto 22px;
+      width: min(620px, 100%);
+      background: #fff7ed;
+      border: 3px solid #fdba74;
+      border-left: 8px solid #fb923c;
+      border-right: 8px solid #fb923c;
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      min-height: 100px;
+    }
 
-#jumpButton {
-  right: 20px;
-}
+    .measure-note {
+      background: white;
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+      font-size: 1.5rem;
+      font-weight: 900;
+    }
 
-#startButton {
-  left: 50%;
-  transform: translateX(-50%);
-}
+    .measure-missing {
+      border: 3px dashed #fb923c;
+      color: #c2410c;
+      background: #ffedd5;
+    }
 
-#message {
-  position: absolute;
-  z-index: 16;
-  top: 10px;
-  left: 50%;
-  width: 90%;
-  transform: translateX(-50%);
-  color: #fff;
-  font-weight: bold;
-  text-shadow: 2px 2px #222;
-}
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
 
-.good { color: #79e879; }
-.bad { color: #ff8585; }
+    .option {
+      background: #f9fafb;
+      border: 3px solid transparent;
+      border-radius: 20px;
+      padding: 18px;
+      min-height: 74px;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--dark);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
 
-@media (max-width: 600px) {
-  h1 { font-size: 1.45rem; }
+    .option:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: #eef2ff;
+      border-color: #c4b5fd;
+    }
 
-  #game {
-    min-height: 450px;
-    border-width: 3px;
-  }
+    .option:disabled {
+      cursor: not-allowed;
+    }
 
-  #kart {
-    font-size: 48px;
-  }
+    .option.correct {
+      background: #dcfce7;
+      border-color: var(--good);
+      color: #166534;
+      animation: correctPulse 0.55s ease;
+    }
 
-  #jumpButton {
-    right: 12px;
-    bottom: 12px;
-  }
+    .option.wrong {
+      background: #fee2e2;
+      border-color: var(--bad);
+      color: #991b1b;
+      animation: shake 0.35s ease;
+    }
 
-  #answers {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
+    @keyframes correctPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
+      50% { transform: scale(1.04); box-shadow: 0 0 35px rgba(34,197,94,0.55); }
+      100% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .feedback {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-weight: 800;
+      display: none;
+    }
+
+    .feedback.good {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .feedback.bad {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .next-row {
+      margin-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .result-screen {
+      text-align: center;
+    }
+
+    .result-box {
+      background: white;
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.12);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-box h2 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      margin: 0 0 8px;
+    }
+
+    .final-score {
+      margin: 22px auto;
+      width: min(360px, 100%);
+      background: linear-gradient(135deg, #f59e0b, #ec4899);
+      color: white;
+      border-radius: 30px;
+      padding: 24px;
+      box-shadow: 0 16px 30px rgba(236,72,153,0.25);
+    }
+
+    .final-score span {
+      display: block;
+      opacity: 0.9;
+      font-weight: 800;
+    }
+
+    .final-score strong {
+      display: block;
+      font-size: clamp(3rem, 10vw, 5rem);
+      line-height: 1;
+      margin-top: 8px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .result-item {
+      background: #f9fafb;
+      border-radius: 18px;
+      padding: 16px;
+      font-weight: 900;
+    }
+
+    .result-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+
+    canvas#fireworks {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .pop-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .pop-overlay.show {
+      display: flex;
+    }
+
+    .pop-card {
+      width: min(640px, 100%);
+      background: white;
+      border-radius: 32px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      animation: popIn 0.35s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .score-hint {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 760px) {
+      .hero-card {
+        grid-template-columns: 1fr;
+      }
+
+      .stats,
+      .result-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .options {
+        grid-template-columns: 1fr;
+      }
+
+      header,
+      main {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .stats,
+      .result-grid,
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quiz-shell {
+        border-radius: 22px;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <canvas id="fireworks"></canvas>
 
-<h1>🏎️ Beat Kart</h1>
+  <div class="page">
+    <div class="quiz-shell">
+      <header>
+        <div class="title-area">
+          <h1>🎵 Notenwerte Quiz 2.0</h1>
+          <p>15 Fragen · gemischte Aufgaben · Feuerwerk bei richtigen Antworten</p>
+        </div>
 
-<div id="hud">
-  <span>❤️ Leben: <b id="lives">3</b></span>
-  <span>⭐ Punkte: <b id="score">0</b></span>
-  <span>🏁 Frage: <b id="number">0</b>/15</span>
-</div>
+        <div class="badge-row">
+          <div class="badge">⏱️ Uhr läuft</div>
+          <div class="badge">⚡ Zeitpunkte</div>
+          <div class="badge">🎆 Feuerwerk</div>
+        </div>
+      </header>
 
-<div id="game">
-  <div class="cloud c1">☁️</div>
-  <div class="cloud c2">☁️</div>
+      <main>
+        <section id="startScreen" class="start-screen active">
+          <div class="hero-card">
+            <div class="hero-text">
+              <h2>Wie gut kennst du Notenwerte?</h2>
+              <p>
+                In jeder Runde bekommst du <strong>15 zufällige Fragen</strong>.
+                Du sammelst Punkte für richtige Antworten und zusätzliche
+                <strong>Zeitpunkte</strong>, wenn du schnell antwortest.
+              </p>
 
-  <div class="tree t1">🌲</div>
-  <div class="tree t2">🌴</div>
-  <div class="tree t3">🌲</div>
-  <div class="tree t4">🌴</div>
+              <div class="feature-grid">
+                <div class="feature">🎼 Notenwerte erkennen</div>
+                <div class="feature">⚖️ Noten vergleichen</div>
+                <div class="feature">🧮 Rhythmen ausrechnen</div>
+                <div class="feature">🥁 4/4-Takt auffüllen</div>
+              </div>
 
-  <div id="road">
-    <div class="lane-line line1"></div>
-    <div class="lane-line line2"></div>
+              <div class="start-actions">
+                <button class="btn btn-primary" onclick="startQuiz()">Quiz starten</button>
+                <button class="btn btn-secondary" onclick="showRules()">Regeln anzeigen</button>
+              </div>
+            </div>
+
+            <div class="mascot">
+              <div>
+                <div class="note">♪</div>
+                <strong>Bereit für den Rhythmus?</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="quizScreen" class="quiz-screen">
+          <div class="stats">
+            <div class="stat">
+              <span>Frage</span>
+              <strong id="questionCounter">1 / 15</strong>
+            </div>
+            <div class="stat">
+              <span>Punkte</span>
+              <strong id="scoreDisplay">0</strong>
+            </div>
+            <div class="stat">
+              <span>Zeit</span>
+              <strong id="timeDisplay">0 s</strong>
+            </div>
+            <div class="stat">
+              <span>Streak</span>
+              <strong id="streakDisplay">0 🔥</strong>
+            </div>
+          </div>
+
+          <div class="progress-outer">
+            <div id="progressInner" class="progress-inner"></div>
+          </div>
+
+          <div class="question-card">
+            <div id="typePill" class="type-pill">🎵 Aufgabe</div>
+            <h2 id="questionTitle" class="question-title"></h2>
+
+            <div id="visualArea"></div>
+
+            <div id="options" class="options"></div>
+
+            <div id="feedback" class="feedback"></div>
+
+            <div class="next-row">
+              <button id="nextButton" class="btn btn-primary hidden" onclick="nextQuestion()">
+                Weiter
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section id="resultScreen" class="result-screen">
+          <div class="result-box">
+            <h2>🏆 Runde beendet!</h2>
+            <p class="score-hint">
+              Merke dir deine Gesamtpunktzahl und vergleiche sie mit anderen.
+            </p>
+
+            <div class="final-score">
+              <span>Gesamtpunktzahl</span>
+              <strong id="finalScore">0</strong>
+            </div>
+
+            <div class="result-grid">
+              <div class="result-item">
+                <span>Richtige Antworten</span>
+                <strong id="finalCorrect">0 / 15</strong>
+              </div>
+              <div class="result-item">
+                <span>Zeit</span>
+                <strong id="finalTime">0 s</strong>
+              </div>
+              <div class="result-item">
+                <span>Zeitpunkte</span>
+                <strong id="finalTimePoints">0</strong>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startQuiz()">Neue Runde starten</button>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <div id="kart">🏎️</div>
+  <div id="popOverlay" class="pop-overlay">
+    <div class="pop-card">
+      <h2>🎉 Dein Ergebnis</h2>
+      <p>Deine Gesamtpunktzahl lautet:</p>
+      <div class="final-score">
+        <span>Merken und vergleichen</span>
+        <strong id="popupScore">0</strong>
+      </div>
+      <button class="btn btn-primary" onclick="closePopup()">Schließen</button>
+    </div>
+  </div>
 
-  <div id="message">Starte das Rhythmusrennen!</div>
+  <script>
+    const TOTAL_QUESTIONS = 15;
 
-  <button id="startButton">▶️ Rennen starten</button>
-  <button id="jumpButton" style="display:none">⬆️ SPRINGEN</button>
+    const notes = [
+      { name: "Ganze Note", symbol: "𝅝", beats: 4 },
+      { name: "Halbe Note", symbol: "𝅗𝅥", beats: 2 },
+      { name: "Viertelnote", symbol: "♩", beats: 1 },
+      { name: "Achtelnote", symbol: "♪", beats: 0.5 },
+      { name: "Sechzehntelnote", symbol: "♬", beats: 0.25 },
+      { name: "punktierte Halbe Note", symbol: "𝅗𝅥.", beats: 3 },
+      { name: "punktierte Viertelnote", symbol: "♩.", beats: 1.5 }
+    ];
 
-  <section id="quiz">
-    <h2>🎼 Rhythmus-Check!</h2>
-    <p id="question"></p>
-    <div id="note"></div>
-    <div id="answers"></div>
-    <p id="quizMessage"></p>
-  </section>
-</div>
+    const beatLabels = {
+      0.25: "¼ Schlag",
+      0.5: "½ Schlag",
+      0.75: "¾ Schlag",
+      1: "1 Schlag",
+      1.25: "1¼ Schläge",
+      1.5: "1½ Schläge",
+      1.75: "1¾ Schläge",
+      2: "2 Schläge",
+      2.5: "2½ Schläge",
+      3: "3 Schläge",
+      3.5: "3½ Schläge",
+      4: "4 Schläge"
+    };
 
-<script>
-/*
-  Die Notenwerte:
-  Ganze Note = 4 Zählzeiten
-  Halbe Note = 2 Zählzeiten
-  Viertelnote = 1 Zählzeit
-  Achtelnote = 0,5 Zählzeiten
-*/
+    let questionPool = [];
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let correctCount = 0;
+    let timePoints = 0;
+    let streak = 0;
+    let startTime = 0;
+    let questionStartTime = 0;
+    let timerInterval = null;
+    let answered = false;
 
-const notes = [
-  { symbol: "𝅝", name: "Ganze Note", value: 4, text: "4" },
-  { symbol: "𝅗𝅥", name: "Halbe Note", value: 2, text: "2" },
-  { symbol: "♩", name: "Viertelnote", value: 1, text: "1" },
-  { symbol: "♪", name: "Achtelnote", value: 0.5, text: "0,5" }
-];
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const resultScreen = document.getElementById("resultScreen");
 
-let allQuestions = [];
-let selectedQuestions = [];
-let questionIndex = 0;
-let score = 0;
-let lives = 3;
-let running = false;
-let quizOpen = false;
-let obstacleTimer;
-let animationFrame;
-let activeObstacles = [];
-let isJumping = false;
-let lastObstacleTime = 0;
-let gameStartTime = 0;;
+    const questionCounter = document.getElementById("questionCounter");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const timeDisplay = document.getElementById("timeDisplay");
+    const streakDisplay = document.getElementById("streakDisplay");
+    const progressInner = document.getElementById("progressInner");
+    const typePill = document.getElementById("typePill");
+    const questionTitle = document.getElementById("questionTitle");
+    const visualArea = document.getElementById("visualArea");
+    const optionsEl = document.getElementById("options");
+    const feedback = document.getElementById("feedback");
+    const nextButton = document.getElementById("nextButton");
 
-/* Erzeugt weit mehr als 80 verschiedene Fragen */
-function createQuestions() {
-  const questions = [];
+    const finalScore = document.getElementById("finalScore");
+    const finalCorrect = document.getElementById("finalCorrect");
+    const finalTime = document.getElementById("finalTime");
+    const finalTimePoints = document.getElementById("finalTimePoints");
+    const popupScore = document.getElementById("popupScore");
+    const popOverlay = document.getElementById("popOverlay");
 
-  notes.forEach(note => {
-    questions.push({
-      note,
-      text: `Wie viele Zählzeiten hat eine ${note.name}?`,
-      answer: note.text
-    });
+    function formatBeats(value) {
+      return beatLabels[value] || value + " Schläge";
+    }
 
-    questions.push({
-      note,
-      text: `Welcher Notenwert ist hier zu sehen?`,
-      answer: note.text
-    });
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
 
-    questions.push({
-      note,
-      text: `Wie lange wird dieses Zeichen gehalten?`,
-      answer: note.text
-    });
+    function randomFrom(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
 
-    questions.push({
-      note,
-      text: `Wie viele Zählzeiten dauert dieses Symbol?`,
-      answer: note.text
-    });
+    function uniqueOptions(correct, options, amount = 4) {
+      const result = [correct];
 
-    questions.push({
-      note,
-      text: `Welche Zahl passt zu dieser ${note.name}?`,
-      answer: note.text
-    });
+      shuffle(options).forEach(option => {
+        if (!result.includes(option) && result.length < amount) {
+          result.push(option);
+        }
+      });
 
-    questions.push({
-      note,
-      text: `Bestimme die Länge dieser Note.`,
-      answer: note.text
-    });
+      return shuffle(result);
+    }
 
-    questions.push({
-      note,
-      text: `Wie viele Schläge zählt dieses Notenzeichen?`,
-      answer: note.text
-    });
+    function makeQuestion(type, title, visual, correctAnswer, options, explanation) {
+      return {
+        type,
+        title,
+        visual,
+        correctAnswer,
+        options: uniqueOptions(correctAnswer, options),
+        explanation
+      };
+    }
 
-    questions.push({
-      note,
-      text: `Welche Zählzeit gehört zu diesem Symbol?`,
-      answer: note.text
-    });
+    function buildQuestionPool() {
+      const pool = [];
 
-    questions.push({
-      note,
-      text: `Erkennst du den Notenwert?`,
-      answer: note.text
-    });
+      const allBeatOptions = [
+        "¼ Schlag", "½ Schlag", "1 Schlag", "1½ Schläge",
+        "2 Schläge", "3 Schläge", "4 Schläge"
+      ];
 
-    questions.push({
-      note,
-      text: `Wie viele Zählzeiten musst du klatschen?`,
-      answer: note.text
-    });
+      const allNameOptions = notes.map(n => n.name);
 
-    questions.push({
-      note,
-      text: `Wie lang klingt diese Note im 4/4-Takt?`,
-      answer: note.text
-    });
+      notes.forEach(note => {
+        pool.push(makeQuestion(
+          "🎵 Notenwert erkennen",
+          `Wie viele Schläge dauert die ${note.name}?`,
+          `<div class="big-note">${note.symbol}</div>`,
+          formatBeats(note.beats),
+          allBeatOptions,
+          `${note.name} dauert ${formatBeats(note.beats)}.`
+        ));
 
-    questions.push({
-      note,
-      text: `Wähle die richtige Dauer aus.`,
-      answer: note.text
-    });
+        pool.push(makeQuestion(
+          "🔎 Note finden",
+          `Welche Note dauert ${formatBeats(note.beats)}?`,
+          "",
+          note.name,
+          allNameOptions,
+          `${formatBeats(note.beats)} gehört zu: ${note.name}.`
+        ));
+      });
 
-    questions.push({
-      note,
-      text: `Welche Antwort ist musikalisch richtig?`,
-      answer: note.text
-    });
+      for (let i = 0; i < notes.length; i++) {
+        for (let j = 0; j < notes.length; j++) {
+          if (i !== j) {
+            const a = notes[i];
+            const b = notes[j];
 
-    questions.push({
-      note,
-      text: `Wie viele Grundschläge nimmt diese Note ein?`,
-      answer: note.text
-    });
+            if (a.beats !== b.beats) {
+              const correct = a.beats > b.beats ? a.name : b.name;
 
-    questions.push({
-      note,
-      text: `Finde die passende Zählzeit.`,
-      answer: note.text
-    });
+              pool.push(makeQuestion(
+                "⚖️ Vergleichen",
+                `Welche Note dauert länger?`,
+                `<div class="measure">
+                  <div class="measure-note">${a.symbol}<br><small>${a.name}</small></div>
+                  <strong>oder</strong>
+                  <div class="measure-note">${b.symbol}<br><small>${b.name}</small></div>
+                </div>`,
+                correct,
+                allNameOptions,
+                `${correct} dauert länger.`
+              ));
+            }
+          }
+        }
+      }
 
-    questions.push({
-      note,
-      text: `Wie lange bleibt der Ton bestehen?`,
-      answer: note.text
-    });
+      const sumCombos = [
+        ["Viertelnote", "Viertelnote"],
+        ["Halbe Note", "Viertelnote"],
+        ["Halbe Note", "Halbe Note"],
+        ["Ganze Note"],
+        ["Achtelnote", "Achtelnote"],
+        ["Achtelnote", "Achtelnote", "Viertelnote"],
+        ["Viertelnote", "Achtelnote", "Achtelnote"],
+        ["punktierte Halbe Note", "Viertelnote"],
+        ["punktierte Viertelnote", "Achtelnote"],
+        ["punktierte Viertelnote", "punktierte Viertelnote"],
+        ["Sechzehntelnote", "Sechzehntelnote", "Achtelnote"],
+        ["Viertelnote", "Sechzehntelnote", "Sechzehntelnote", "Achtelnote"],
+        ["Halbe Note", "Achtelnote", "Achtelnote"],
+        ["Achtelnote", "Achtelnote", "Achtelnote", "Achtelnote"],
+        ["Viertelnote", "Viertelnote", "Achtelnote", "Achtelnote"],
+        ["Halbe Note", "punktierte Viertelnote", "Achtelnote"],
+        ["punktierte Halbe Note", "Achtelnote", "Achtelnote"],
+        ["Viertelnote", "Viertelnote", "Viertelnote"],
+        ["Halbe Note", "Viertelnote", "Achtelnote"],
+        ["Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote"]
+      ];
 
-    questions.push({
-      note,
-      text: `Welche Zahl beschreibt diesen Notenwert?`,
-      answer: note.text
-    });
+      sumCombos.forEach(combo => {
+        const comboNotes = combo.map(name => notes.find(n => n.name === name));
+        const sum = comboNotes.reduce((acc, n) => acc + n.beats, 0);
+        const visual = `
+          <div class="measure">
+            ${comboNotes.map(n => `<div class="measure-note">${n.symbol}<br><small>${n.name}</small></div>`).join("")}
+          </div>
+        `;
 
-    questions.push({
-      note,
-      text: `Wie viele Zählzeiten verstecken sich hier?`,
-      answer: note.text
-    });
+        pool.push(makeQuestion(
+          "🧮 Zusammenrechnen",
+          "Wie viele Schläge dauern diese Noten zusammen?",
+          visual,
+          formatBeats(sum),
+          Object.values(beatLabels),
+          `Zusammen ergeben die Noten ${formatBeats(sum)}.`
+        ));
+      });
 
-    questions.push({
-      note,
-      text: `Richtig zuhören und auswählen: Wie lang ist die Note?`,
-      answer: note.text
-    });
+      const fillCombos = [
+        { names: ["Halbe Note", "Viertelnote"], missing: 1 },
+        { names: ["Viertelnote", "Viertelnote"], missing: 2 },
+        { names: ["punktierte Halbe Note"], missing: 1 },
+        { names: ["Halbe Note"], missing: 2 },
+        { names: ["Viertelnote"], missing: 3 },
+        { names: ["Achtelnote", "Achtelnote", "Viertelnote"], missing: 2 },
+        { names: ["punktierte Viertelnote", "Achtelnote"], missing: 2 },
+        { names: ["Halbe Note", "Achtelnote", "Achtelnote"], missing: 1 },
+        { names: ["Viertelnote", "Achtelnote", "Achtelnote"], missing: 2 },
+        { names: ["Sechzehntelnote", "Sechzehntelnote", "Achtelnote"], missing: 3.5 },
+        { names: ["punktierte Viertelnote"], missing: 2.5 },
+        { names: ["Achtelnote", "Achtelnote"], missing: 3 },
+        { names: ["Viertelnote", "Viertelnote", "Viertelnote"], missing: 1 },
+        { names: ["Halbe Note", "punktierte Viertelnote"], missing: 0.5 },
+        { names: ["punktierte Halbe Note", "Achtelnote"], missing: 0.5 },
+        { names: ["Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote"], missing: 3 }
+      ];
 
-    questions.push({
-      note,
-      text: `Letzte Chance: Wie viele Zählzeiten sind es?`,
-      answer: note.text
-    });
-  });
+      fillCombos.forEach(item => {
+        const comboNotes = item.names.map(name => notes.find(n => n.name === name));
+        const visual = `
+          <div class="measure">
+            <strong>|</strong>
+            ${comboNotes.map(n => `<div class="measure-note">${n.symbol}<br><small>${n.name}</small></div>`).join("")}
+            <div class="measure-note measure-missing">?</div>
+            <strong>|</strong>
+          </div>
+        `;
 
-  return questions;
-}
+        pool.push(makeQuestion(
+          "🥁 4/4-Takt auffüllen",
+          "Welche Notenlänge fehlt, damit der Takt genau 4 Schläge hat?",
+          visual,
+          formatBeats(item.missing),
+          Object.values(beatLabels),
+          `Ein 4/4-Takt hat 4 Schläge. Es fehlen ${formatBeats(item.missing)}.`
+        ));
+      });
 
-function shuffle(array) {
-  return [...array].sort(() => Math.random() - 0.5);
-}
+      const trueFalseItems = [
+        ["Eine Ganze Note dauert 4 Schläge.", "Richtig"],
+        ["Eine Halbe Note dauert 4 Schläge.", "Falsch"],
+        ["Zwei Viertelnoten dauern zusammen 2 Schläge.", "Richtig"],
+        ["Vier Achtelnoten dauern zusammen 1 Schlag.", "Falsch"],
+        ["Eine punktierte Halbe Note dauert 3 Schläge.", "Richtig"],
+        ["Eine Achtelnote dauert einen halben Schlag.", "Richtig"],
+        ["Eine Sechzehntelnote dauert 2 Schläge.", "Falsch"],
+        ["Zwei halbe Noten füllen einen 4/4-Takt.", "Richtig"],
+        ["Eine Viertelnote und zwei Achtelnoten dauern zusammen 2 Schläge.", "Richtig"],
+        ["Eine punktierte Viertelnote dauert 3 Schläge.", "Falsch"]
+      ];
 
-function updateHud() {
-  document.getElementById("lives").textContent = lives;
-  document.getElementById("score").textContent = score;
-  document.getElementById("number").textContent =
-    Math.min(questionIndex, 15);
-}
+      trueFalseItems.forEach(item => {
+        pool.push(makeQuestion(
+          "✅ Richtig oder falsch?",
+          item[0],
+          "",
+          item[1],
+          ["Richtig", "Falsch"],
+          `Die Aussage ist: ${item[1]}.`
+        ));
+      });
 
-function startGame() {
-  allQuestions = createQuestions();
-  selectedQuestions = shuffle(allQuestions).slice(0, 15);
+      return pool;
+    }
 
-  questionIndex = 0;
-  score = 0;
-  lives = 3;
-  running = true;
-  quizOpen = false;
-  isJumping = false;
-  activeObstacles = [];
+    function showRules() {
+      alert(
+        "Regeln:\n\n" +
+        "• Eine Runde hat 15 Fragen.\n" +
+        "• Richtige Antworten geben 100 Grundpunkte.\n" +
+        "• Wenn du schnell antwortest, bekommst du bis zu 100 zusätzliche Zeitpunkte.\n" +
+        "• Bei jeder richtigen Antwort gibt es ein kleines Feuerwerk.\n" +
+        "• Am Ende bekommst du deine Gesamtpunktzahl."
+      );
+    }
 
-  document.querySelectorAll(".obstacle").forEach(obstacle => {
-    obstacle.remove();
-  });
+    function startQuiz() {
+      questionPool = buildQuestionPool();
 
-  updateHud();
+      currentQuestions = shuffle(questionPool).slice(0, TOTAL_QUESTIONS);
+      currentIndex = 0;
+      score = 0;
+      correctCount = 0;
+      timePoints = 0;
+      streak = 0;
+      answered = false;
 
-  document.getElementById("startButton").style.display = "none";
-  document.getElementById("jumpButton").style.display = "block";
-  document.getElementById("message").textContent =
-    "Das Rennen beginnt! Springe rechtzeitig über die Hindernisse.";
+      startScreen.classList.remove("active");
+      resultScreen.classList.remove("active");
+      quizScreen.classList.add("active");
 
-  clearInterval(obstacleTimer);
-  obstacleTimer = setInterval(createObstacle, 2200);
+      startTime = Date.now();
 
-  cancelAnimationFrame(animationFrame);
-  animationFrame = requestAnimationFrame(gameLoop);
-}
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 500);
 
-function jump() {
-  if (!running || quizOpen || isJumping) return;
+      updateStats();
+      showQuestion();
+    }
 
-  isJumping = true;
+    function updateTimer() {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      timeDisplay.textContent = seconds + " s";
+    }
 
-  const kart = document.getElementById("kart");
+    function updateStats() {
+      questionCounter.textContent = `${Math.min(currentIndex + 1, TOTAL_QUESTIONS)} / ${TOTAL_QUESTIONS}`;
+      scoreDisplay.textContent = score;
+      streakDisplay.textContent = streak + " 🔥";
+      progressInner.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
+      updateTimer();
+    }
 
-  kart.classList.remove("jumping");
-  void kart.offsetWidth;
-  kart.classList.add("jumping");
+    function showQuestion() {
+      answered = false;
+      questionStartTime = Date.now();
 
-  setTimeout(() => {
-    isJumping = false;
-  }, 750);
-}
+      const q = currentQuestions[currentIndex];
 
-function createObstacle() {
-  if (!running || quizOpen) return;
+      typePill.textContent = q.type;
+      questionTitle.textContent = q.title;
+      visualArea.innerHTML = q.visual || "";
+      optionsEl.innerHTML = "";
+      feedback.className = "feedback";
+      feedback.textContent = "";
+      nextButton.classList.add("hidden");
 
-  const obstacle = document.createElement("div");
-  obstacle.className = "obstacle";
+      q.options.forEach(optionText => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.textContent = optionText;
+        button.onclick = () => chooseAnswer(button, optionText);
+        optionsEl.appendChild(button);
+      });
 
-  const choices = ["🪨", "🌵", "🛢️", "🚧", "🔥"];
-  obstacle.textContent =
-    choices[Math.floor(Math.random() * choices.length)];
+      updateStats();
+    }
 
-  document.getElementById("game").appendChild(obstacle);
-  activeObstacles.push(obstacle);
+    function chooseAnswer(button, selected) {
+      if (answered) return;
+      answered = true;
 
-  setTimeout(() => {
-    obstacle.remove();
-    activeObstacles = activeObstacles.filter(item => item !== obstacle);
-  }, 4300);
-}
+      const q = currentQuestions[currentIndex];
+      const buttons = document.querySelectorAll(".option");
 
-function checkCollisions() {
-  if (!running || quizOpen) return;
+      buttons.forEach(btn => {
+        btn.disabled = true;
 
-  const kart = document.getElementById("kart");
-  const kartRect = kart.getBoundingClientRect();
+        if (btn.textContent === q.correctAnswer) {
+          btn.classList.add("correct");
+        }
+      });
 
-  activeObstacles.forEach(obstacle => {
-    const obstacleRect = obstacle.getBoundingClientRect();
+      const isCorrect = selected === q.correctAnswer;
 
-    const collision =
-      kartRect.left < obstacleRect.right &&
-      kartRect.right > obstacleRect.left &&
-      kartRect.top < obstacleRect.bottom &&
-      kartRect.bottom > obstacleRect.top;
+      if (isCorrect) {
+        const secondsForQuestion = (Date.now() - questionStartTime) / 1000;
+        const bonus = Math.max(0, Math.round(100 - secondsForQuestion * 7));
+        const streakBonus = Math.min(streak * 10, 50);
 
-    if (collision && !obstacle.dataset.hit) {
-      obstacle.dataset.hit = "true";
+        streak++;
+        correctCount++;
+        timePoints += bonus;
+        score += 100 + bonus + streakBonus;
 
-      // Während des Sprungs darf das Hindernis passiert werden.
-      if (!isJumping) {
-        loseLife();
-        obstacle.classList.add("hit");
+        button.classList.add("correct");
+        feedback.className = "feedback good";
+        feedback.textContent = `Richtig! +100 Punkte, +${bonus} Zeitpunkte${streakBonus ? `, +${streakBonus} Streak-Bonus` : ""}. ${q.explanation}`;
+
+        launchFireworks();
+      } else {
+        streak = 0;
+        button.classList.add("wrong");
+        feedback.className = "feedback bad";
+        feedback.textContent = `Noch nicht ganz. Die richtige Antwort ist: ${q.correctAnswer}. ${q.explanation}`;
+      }
+
+      updateStats();
+      nextButton.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+
+      if (currentIndex >= TOTAL_QUESTIONS) {
+        finishQuiz();
+      } else {
+        showQuestion();
       }
     }
-  });
-}
 
-function loseLife() {
-  lives--;
-  updateHud();
+    function finishQuiz() {
+      clearInterval(timerInterval);
 
-  const message = document.getElementById("message");
-  message.textContent = "💥 Autsch! Du bist gegen ein Hindernis gefahren.";
-  message.className = "bad";
+      const totalTime = Math.floor((Date.now() - startTime) / 1000);
 
-  const kart = document.getElementById("kart");
-  kart.style.filter = "drop-shadow(0 0 15px red)";
+      quizScreen.classList.remove("active");
+      resultScreen.classList.add("active");
 
-  setTimeout(() => {
-    kart.style.filter = "drop-shadow(0 8px 3px #1118)";
-  }, 500);
+      progressInner.style.width = "100%";
 
-  if (lives <= 0) {
-    gameOver();
-  }
-}
+      finalScore.textContent = score;
+      finalCorrect.textContent = `${correctCount} / ${TOTAL_QUESTIONS}`;
+      finalTime.textContent = totalTime + " s";
+      finalTimePoints.textContent = timePoints;
+      popupScore.textContent = score;
 
-function gameLoop(timestamp) {
-  if (!running) return;
-
-  checkCollisions();
-
-  // Kleine Kamerabewegung für ein schnelleres Fahrgefühl
-  const road = document.getElementById("road");
-  const speed = timestamp / 8;
-  road.style.backgroundPosition = `0 ${speed}px`;
-
-  // Bäume bewegen sich leicht nach links und rechts
-  document.querySelectorAll(".tree").forEach((tree, index) => {
-    tree.style.transform =
-      `translateX(${Math.sin(timestamp / 500 + index) * 8}px)`;
-  });
-
-  animationFrame = requestAnimationFrame(gameLoop);
-}
-
-function showQuestion() {
-  if (quizOpen || questionIndex >= 15) return;
-
-  quizOpen = true;
-  const current = selectedQuestions[questionIndex];
-
-  document.getElementById("quiz").style.display = "block";
-  document.getElementById("question").textContent = current.text;
-  document.getElementById("note").textContent = current.note.symbol;
-  document.getElementById("quizMessage").textContent = "";
-
-  const wrongAnswers = notes
-    .map(note => note.text)
-    .filter(value => value !== current.answer);
-
-  const answers = shuffle([
-    current.answer,
-    ...shuffle(wrongAnswers).slice(0, 3)
-  ]);
-
-  const answersBox = document.getElementById("answers");
-  answersBox.innerHTML = "";
-
-  answers.forEach(answer => {
-    const button = document.createElement("button");
-    button.textContent = `${answer} Zählzeit${answer === "1" ? "" : "en"}`;
-    button.onclick = () => checkAnswer(answer);
-    answersBox.appendChild(button);
-  });
-}
-
-function checkAnswer(answer) {
-  const current = selectedQuestions[questionIndex];
-  const quizMessage = document.getElementById("quizMessage");
-
-  if (answer === current.answer) {
-    score += 100;
-    quizMessage.textContent = "✅ Richtig! Das Kart fährt weiter.";
-    quizMessage.className = "good";
-
-    setTimeout(closeQuestion, 700);
-  } else {
-    lives--;
-    updateHud();
-
-    quizMessage.textContent = "❌ Falsch! Du verlierst ein Leben.";
-    quizMessage.className = "bad";
-
-    if (lives <= 0) {
-      setTimeout(gameOver, 700);
+      setTimeout(() => {
+        popOverlay.classList.add("show");
+        launchFireworks();
+        setTimeout(launchFireworks, 400);
+        setTimeout(launchFireworks, 800);
+      }, 500);
     }
-  }
-}
 
-function closeQuestion() {
-  document.getElementById("quiz").style.display = "none";
-  quizOpen = false;
-  questionIndex++;
-  updateHud();
+    function closePopup() {
+      popOverlay.classList.remove("show");
+    }
 
-  if (questionIndex >= 15) {
-    winGame();
-  } else {
-    document.getElementById("message").textContent =
-      "Hindernis voraus – bereit zum Springen?";
-  }
-}
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
 
-function gameOver() {
-  running = false;
-  quizOpen = false;
-  clearInterval(obstacleTimer);
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
 
-  document.getElementById("quiz").style.display = "none";
-  document.getElementById("jumpButton").style.display = "none";
-  document.getElementById("startButton").style.display = "block";
-  document.getElementById("startButton").textContent = "🔄 Nochmal fahren";
-  document.getElementById("message").textContent =
-    "💥 Rennen vorbei! Versuche es noch einmal.";
-}
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 
-function winGame() {
-  running = false;
-  clearInterval(obstacleTimer);
+    function launchFireworks() {
+      const colors = ["#f97316", "#22c55e", "#06b6d4", "#ec4899", "#a855f7", "#fde047"];
+      const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+      const y = Math.random() * canvas.height * 0.45 + canvas.height * 0.1;
 
-  document.getElementById("jumpButton").style.display = "none";
-  document.getElementById("startButton").style.display = "block";
-  document.getElementById("startButton").textContent = "🏆 Neues Rennen";
-  document.getElementById("message").textContent =
-    "🏁 Ziel erreicht! Du hast alle 15 Rhythmusfragen geschafft!";
-}
+      for (let i = 0; i < 70; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
 
-document.getElementById("startButton").onclick = startGame;
-document.getElementById("jumpButton").onclick = jump;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 70,
+          color: randomFrom(colors),
+          size: Math.random() * 4 + 2
+        });
+      }
+    }
 
-document.addEventListener("keydown", event => {
-  if (event.code === "Space" || event.code === "ArrowUp") {
-    event.preventDefault();
-    jump();
-  }
-});
-</script>
+    function animateFireworks() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      particles = particles.filter(p => p.life > 0);
+
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.045;
+        p.life--;
+
+        ctx.globalAlpha = p.life / 70;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animateFireworks);
+    }
+
+    animateFireworks();
+  </script>
 </body>
 </html>
