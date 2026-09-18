@@ -118,11 +118,48 @@ h1 {
 #kart {
   position: absolute;
   z-index: 8;
-  left: 50%;
-  bottom: 18%;
+  left: 18%;
+  bottom: 17%;
+  width: 76px;
+  height: 52px;
+  font-size: 48px;
   transform: translateX(-50%);
-  font-size: 58px;
-  transition: bottom .25s;
+  transition: bottom .15s ease;
+  filter: drop-shadow(0 8px 3px #1118);
+}
+
+#kart::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 8px;
+  bottom: -8px;
+  height: 12px;
+  border-radius: 50%;
+  background: #1118;
+  filter: blur(3px);
+}
+
+#kart.jumping {
+  animation: kartJump .75s cubic-bezier(.2,.8,.4,1);
+}
+
+@keyframes kartJump {
+  0% {
+    bottom: 17%;
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  45% {
+    bottom: 53%;
+    transform: translateX(-50%) rotate(-8deg);
+  }
+
+  100% {
+    bottom: 17%;
+    transform: translateX(-50%) rotate(0deg);
+  }
+}
 }
 
 #kart.jumping {
@@ -139,10 +176,42 @@ h1 {
 .obstacle {
   position: absolute;
   z-index: 7;
-  right: -100px;
-  bottom: 20%;
-  font-size: 48px;
-  animation: drive 3.3s linear forwards;
+  left: 100%;
+  bottom: 18%;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  font-size: 42px;
+  animation: obstacleMove 4s linear forwards;
+  filter: drop-shadow(0 7px 3px #1118);
+}
+
+@keyframes obstacleMove {
+  from {
+    left: 105%;
+  }
+
+  to {
+    left: -100px;
+  }
+}
+
+.obstacle.hit {
+  animation: hit .45s ease forwards;
+}
+
+@keyframes hit {
+  50% {
+    transform: scale(1.5) rotate(20deg);
+    filter: brightness(2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(.2);
+  }
+}
 }
 
 @keyframes drive {
@@ -333,6 +402,11 @@ let lives = 3;
 let running = false;
 let quizOpen = false;
 let obstacleTimer;
+let animationFrame;
+let activeObstacles = [];
+let isJumping = false;
+let lastObstacleTime = 0;
+let gameStartTime = 0;;
 
 /* Erzeugt weit mehr als 80 verschiedene Fragen */
 function createQuestions() {
@@ -483,31 +557,41 @@ function startGame() {
   lives = 3;
   running = true;
   quizOpen = false;
+  isJumping = false;
+  activeObstacles = [];
+
+  document.querySelectorAll(".obstacle").forEach(obstacle => {
+    obstacle.remove();
+  });
 
   updateHud();
 
   document.getElementById("startButton").style.display = "none";
   document.getElementById("jumpButton").style.display = "block";
   document.getElementById("message").textContent =
-    "Das Kart fährt automatisch – springe über Hindernisse!";
+    "Das Rennen beginnt! Springe rechtzeitig über die Hindernisse.";
 
   clearInterval(obstacleTimer);
-  obstacleTimer = setInterval(createObstacle, 2600);
+  obstacleTimer = setInterval(createObstacle, 2200);
+
+  cancelAnimationFrame(animationFrame);
+  animationFrame = requestAnimationFrame(gameLoop);
 }
 
 function jump() {
-  if (!running || quizOpen) return;
+  if (!running || quizOpen || isJumping) return;
+
+  isJumping = true;
 
   const kart = document.getElementById("kart");
+
   kart.classList.remove("jumping");
   void kart.offsetWidth;
   kart.classList.add("jumping");
 
   setTimeout(() => {
-    if (running && questionIndex < 15) {
-      showQuestion();
-    }
-  }, 800);
+    isJumping = false;
+  }, 750);
 }
 
 function createObstacle() {
@@ -520,16 +604,79 @@ function createObstacle() {
   obstacle.textContent =
     choices[Math.floor(Math.random() * choices.length)];
 
-  obstacle.style.bottom = `${18 + Math.random() * 9}%`;
   document.getElementById("game").appendChild(obstacle);
-
-  setTimeout(() => obstacle.remove(), 3500);
+  activeObstacles.push(obstacle);
 
   setTimeout(() => {
-    if (running && !quizOpen && questionIndex < 15) {
-      showQuestion();
+    obstacle.remove();
+    activeObstacles = activeObstacles.filter(item => item !== obstacle);
+  }, 4300);
+}
+
+function checkCollisions() {
+  if (!running || quizOpen) return;
+
+  const kart = document.getElementById("kart");
+  const kartRect = kart.getBoundingClientRect();
+
+  activeObstacles.forEach(obstacle => {
+    const obstacleRect = obstacle.getBoundingClientRect();
+
+    const collision =
+      kartRect.left < obstacleRect.right &&
+      kartRect.right > obstacleRect.left &&
+      kartRect.top < obstacleRect.bottom &&
+      kartRect.bottom > obstacleRect.top;
+
+    if (collision && !obstacle.dataset.hit) {
+      obstacle.dataset.hit = "true";
+
+      // Während des Sprungs darf das Hindernis passiert werden.
+      if (!isJumping) {
+        loseLife();
+        obstacle.classList.add("hit");
+      }
     }
-  }, 1800);
+  });
+}
+
+function loseLife() {
+  lives--;
+  updateHud();
+
+  const message = document.getElementById("message");
+  message.textContent = "💥 Autsch! Du bist gegen ein Hindernis gefahren.";
+  message.className = "bad";
+
+  const kart = document.getElementById("kart");
+  kart.style.filter = "drop-shadow(0 0 15px red)";
+
+  setTimeout(() => {
+    kart.style.filter = "drop-shadow(0 8px 3px #1118)";
+  }, 500);
+
+  if (lives <= 0) {
+    gameOver();
+  }
+}
+
+function gameLoop(timestamp) {
+  if (!running) return;
+
+  checkCollisions();
+
+  // Kleine Kamerabewegung für ein schnelleres Fahrgefühl
+  const road = document.getElementById("road");
+  const speed = timestamp / 8;
+  road.style.backgroundPosition = `0 ${speed}px`;
+
+  // Bäume bewegen sich leicht nach links und rechts
+  document.querySelectorAll(".tree").forEach((tree, index) => {
+    tree.style.transform =
+      `translateX(${Math.sin(timestamp / 500 + index) * 8}px)`;
+  });
+
+  animationFrame = requestAnimationFrame(gameLoop);
 }
 
 function showQuestion() {
