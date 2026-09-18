@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notenwerte Quiz</title>
+<style>
+:root{--bg:#07101e;--card:#101d31;--card2:#152943;--text:#f4f8ff;--muted:#a9b9ce;--cyan:#62ddff;--purple:#a77cff;--green:#48e6a7;--red:#ff7187;--yellow:#ffd86b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at 10% 0,#19436d,transparent 32%),radial-gradient(circle at 90% 10%,#40266c,transparent 30%),var(--bg)}
+main{width:min(1050px,94vw);margin:auto;padding:25px 0 45px}header{text-align:center}.eyebrow{font-size:.82rem;font-weight:900;letter-spacing:.13em;color:var(--cyan)}h1{font-size:clamp(2.4rem,7vw,4.7rem);margin:6px 0;background:linear-gradient(90deg,var(--cyan),#fff,var(--purple));-webkit-background-clip:text;color:transparent}header p{color:var(--muted);margin-top:0}
+.card{background:linear-gradient(145deg,#152740f7,#0d192bf7);border:1px solid #2a4362;border-radius:28px;padding:24px;box-shadow:0 22px 65px #0007;margin:16px 0}.center{text-align:center}
+.badges{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:18px 0}.badge,.stat{background:#091728;border:1px solid #2b435f;border-radius:999px;padding:8px 13px}
+.start,.primary,.answer,.noteBtn,.small{color:var(--text);cursor:pointer;font:inherit;border-radius:16px}.start{border:0;background:linear-gradient(90deg,#3bbde9,#8b6df5);font-weight:900;padding:16px 30px;box-shadow:0 10px 30px #0005}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.stats{display:flex;gap:8px;flex-wrap:wrap}.timer{color:var(--yellow);font-weight:900}.progress{height:10px;background:#06101c;border-radius:99px;overflow:hidden;margin:18px 0}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:.3s}
+.q{text-align:center;font-size:clamp(1.25rem,3vw,1.85rem);font-weight:800;line-height:1.35;margin:24px auto;max-width:850px}.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}.answer,.noteBtn{border:1px solid #3a5878;background:#12263f;padding:15px;font-weight:750;transition:.16s}.answer:hover,.noteBtn:hover{transform:translateY(-2px);border-color:var(--cyan)}.feedback{text-align:center;min-height:34px;margin-top:15px;font-weight:850}.good{color:var(--green)}.bad{color:var(--red)}
+.barBox{background:#fff;border-radius:20px;padding:12px 12px 3px;box-shadow:0 10px 30px #0006}.barHead{display:flex;justify-content:space-between;color:#17253a;font-weight:900;padding:2px 8px 8px}.barHead small{color:#586a80}.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.noteIcon{height:55px;display:flex;justify-content:center;align-items:center}.noteIcon svg{width:75px;height:55px}.hint{text-align:center;color:var(--muted);margin-top:12px;font-size:.9rem}
+.result{text-align:center}.big{font-size:clamp(4rem,14vw,8rem);line-height:1;font-weight:1000;color:var(--cyan);text-shadow:0 0 35px #62ddff55}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.box{background:#091728;border:1px solid #2b435f;border-radius:17px;padding:14px}.box b{display:block;font-size:1.35rem}.box span{color:var(--muted);font-size:.85rem}
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:20}.p{position:absolute;font-size:25px;animation:fly 1.05s ease-out forwards}@keyframes fly{0%{opacity:0;transform:translate(0,0) scale(.4)}15%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.15) rotate(260deg)}}.flash{animation:flash .65s ease}@keyframes flash{35%{box-shadow:0 0 55px #48e6a7aa}}
+.hidden{display:none!important}@media(max-width:700px){.answers,.choices{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.card{padding:17px}}@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="fx"></div>
+<main>
+<header><div class="eyebrow">🎵 LERNEN · DENKEN · PUNKTEN</div><h1>Notenwerte Quiz</h1><p>15 Fragen · 84 Aufgaben im Pool · Schnelligkeit bringt Bonuspunkte</p></header>
+
+<section id="home" class="card center">
+<h2>🏆 Schaffst du die 15?</h2>
+<p>Die Aufgabenarten werden automatisch gemischt. Jede Runde ist anders.</p>
+<div class="badges"><span class="badge">🎯 15 Fragen</span><span class="badge">📚 84 Aufgaben</span><span class="badge">⏱️ Zeitbonus</span><span class="badge">🎆 Feuerwerk</span></div>
+<button class="start" onclick="startQuiz()">Quiz starten</button>
+</section>
+
+<section id="game" class="card hidden">
+<div class="top"><div class="stats"><span class="stat">⭐ <b id="score">0</b></span><span class="stat">🔥 <b id="streak">0</b></span><span class="stat">❤️ <b id="lives">3</b></span></div><span class="stat timer">⏱️ <b id="clock">0,0</b>s</span></div>
+<div class="progress"><span id="progress"></span></div>
+<div id="area"></div>
+</section>
+
+<section id="result" class="card result hidden">
+<div style="font-size:3rem">🏆</div><h2>Deine Punktzahl</h2>
+<div class="big" id="total">0</div><p>GESAMTPUNKTE</p>
+<div class="grid"><div class="box"><b id="right">0/15</b><span>richtige Antworten</span></div><div class="box"><b id="bonus">0</b><span>Zeitbonus</span></div><div class="box"><b id="roundTime">0,0 s</b><span>Gesamtzeit</span></div></div>
+<p id="message"></p><button class="start" onclick="startQuiz()">Neue Runde</button>
+</section>
+</main>
+
+<script>
+const V={g:4,h:2,v:1,a:.5,s:.25},N={g:"Ganze",h:"Halbe",v:"Viertel",a:"Achtel",s:"Sechzehntel"};
+const tasks=[];
+function add(type,q,opts,answer,explain="",notes=null){tasks.push({type,q,opts,answer,explain,notes})}
+function sh(a){return [...a].sort(()=>Math.random()-.5)}
+const Q=[
+["Wie viele Schläge hat eine ganze Note?",["1","2","3","4"],"4"],["Wie viele Schläge hat eine halbe Note?",["1","2","3","4"],"2"],
+["Wie viele Schläge hat eine Viertelnote?",["½","1","2","4"],"1"],["Wie viele Schläge hat eine Achtelnote?",["¼","½","1","2"],"½"],
+["Wie viele Schläge hat eine Sechzehntelnote?",["¼","½","1","2"],"¼"],["Welche Note ist doppelt so lang wie eine Viertel?",["Achtel","Halbe","Sechzehntel","Ganze"],"Halbe"],
+["Welche Note ist halb so lang wie eine Viertel?",["Halbe","Achtel","Ganze","Sechzehntel"],"Achtel"],["Welche Note ist viermal so lang wie eine Sechzehntel?",["Achtel","Viertel","Halbe","Ganze"],"Viertel"],
+["Wie viele Viertel ergeben eine ganze Note?",["2","3","4","8"],"4"],["Wie viele Achtel ergeben eine halbe Note?",["2","4","6","8"],"4"],
+["Wie viele Sechzehntel ergeben eine Viertelnote?",["2","3","4","8"],"4"],["Wie viele Sechzehntel ergeben eine halbe Note?",["4","6","8","16"],"8"],
+["Eine Viertel entspricht wie vielen Achteln?",["1","2","3","4"],"2"],["Eine Achtel entspricht wie vielen Sechzehnteln?",["1","2","3","4"],"2"],
+["Welche ist die längste Note?",["Achtel","Viertel","Halbe","Ganze"],"Ganze"],["Welche ist die kürzeste Note?",["Viertel","Achtel","Sechzehntel","Halbe"],"Sechzehntel"],
+["Welche Note entspricht 2 Schlägen?",["Ganze","Halbe","Viertel","Achtel"],"Halbe"],["Welche Note entspricht 4 Schlägen?",["Ganze","Halbe","Viertel","Achtel"],"Ganze"],
+["Welche Note entspricht ¼ Schlag?",["Achtel","Viertel","Sechzehntel","Halbe"],"Sechzehntel"],["Was ist länger?",["Sechzehntel","Achtel","Viertel","Alle gleich"],"Viertel"],
+["Was ist kürzer?",["Ganze","Halbe","Viertel","Achtel"],"Achtel"],["Wie viele halbe Noten passen in eine ganze?",["1","2","3","4"],"2"],
+["Wie viele Viertel passen in eine halbe?",["1","2","3","4"],"2"],["Wie viele Achtel passen in eine Viertel?",["1","2","3","4"],"2"],
+["Wie viele Sechzehntel passen in eine Achtel?",["1","2","3","4"],"2"],["Welche Reihenfolge ist von kurz nach lang?",["Sechzehntel–Achtel–Viertel","Viertel–Achtel–Sechzehntel","Achtel–Viertel–Sechzehntel","Halbe–Viertel–Ganze"],"Sechzehntel–Achtel–Viertel"],
+["Welche Reihenfolge ist von lang nach kurz?",["Ganze–Halbe–Viertel","Viertel–Halbe–Ganze","Achtel–Viertel–Halbe","Sechzehntel–Viertel–Ganze"],"Ganze–Halbe–Viertel"],
+["Welche Kombination ergibt genau 1 Schlag?",["1 Halbe","2 Achtel","3 Achtel","1 Ganze"],"2 Achtel"],
+["Welche Kombination ergibt genau 2 Schläge?",["2 Viertel","1 Achtel","3 Achtel","1 Ganze"],"2 Viertel"],
+["Welche Kombination ergibt genau 3 Schläge?",["1 Halbe + 1 Viertel","1 Ganze","2 Achtel","4 Sechzehntel"],"1 Halbe + 1 Viertel"],
+["Welche Kombination ergibt genau ½ Schlag?",["2 Sechzehntel","1 Viertel","4 Sechzehntel","1 Halbe"],"2 Sechzehntel"],
+["Welche Kombination ist genauso lang wie eine halbe?",["2 Achtel","4 Achtel","1 Viertel","3 Achtel"],"4 Achtel"],
+["Welche Kombination ist genauso lang wie eine Viertel?",["2 Achtel","1 Halbe","3 Achtel","4 Sechzehntel"],"2 Achtel"],
+["Welche Kombination ist genauso lang wie eine Achtel?",["2 Sechzehntel","1 Viertel","3 Sechzehntel","1 Halbe"],"2 Sechzehntel"],
+["Im 4/4-Takt passen wie viele Viertel in einen Takt?",["2","3","4","8"],"4"]
+];
+Q.forEach(x=>add("wissen",x[0],x[1],x[2]));
+
+const C=[
+["2 Viertel + 1 Halbe = ?",["2","3","4","5"],"4"],["1 Halbe + 2 Achtel = ?",["2","2,5","3","4"],"3"],
+["4 Achtel + 1 Viertel = ?",["2","3","4","5"],"3"],["2 Viertel + 4 Sechzehntel = ?",["1","2","2,5","3"],"2"],
+["8 Sechzehntel + 1 Viertel = ?",["2","2,5","3","4"],"3"],["1 Ganze + 1 Viertel = ?",["4","5","6","8"],"5"],
+["2 Halbe + 4 Sechzehntel = ?",["4","5","6","8"],"5"],["1 Halbe + 4 Sechzehntel = ?",["2","3","4","5"],"3"],
+["4 Viertel + 2 Achtel = ?",["4","5","6","8"],"5"],["1 Viertel + 2 Achtel + 4 Sechzehntel = ?",["1,5","2","2,5","3"],"2"],
+["3 Viertel + 2 Achtel = ?",["3","4","5","6"],"4"],["2 Halbe + 2 Achtel = ?",["4","4,5","5","6"],"5"],
+["6 Achtel + 2 Sechzehntel = ?",["3","3,5","4","4,5"],"3,5"],["2 Viertel + 2 Achtel + 4 Sechzehntel = ?",["2","2,5","3","3,5"],"3"],
+["1 Halbe + 1 Viertel + 2 Sechzehntel = ?",["3","3,25","3,5","4"],"3,5"],["2 Achtel + 2 Sechzehntel = ?",["1","1,5","2","2,5"],"1,5"],
+["4 Sechzehntel + 1 Achtel = ?",["0,75","1","1,25","1,5"],"1,5"],["1 Viertel + 4 Sechzehntel = ?",["1","1,25","1,5","2"],"1,5"],
+["1 Halbe + 2 Sechzehntel = ?",["2","2,5","3","3,5"],"2,5"],["3 Achtel + 2 Sechzehntel = ?",["1,25","1,5","1,75","2"],"2"],
+["2 Viertel + 2 Sechzehntel = ?",["2","2,25","2,5","3"],"2,5"],["1 Ganze - 1 Viertel = ?",["2","3","3,5","4"],"3"],
+["1 Halbe - 1 Achtel = ?",["1","1,5","2","2,5"],"1,5"],["2 Viertel - 2 Sechzehntel = ?",["1,5","1,75","2","2,25"],"1,5"],
+["1 Ganze - 2 Achtel = ?",["3","3,5","4","2"],"3"]
+];
+C.forEach(x=>add("rechnen",x[0],x[1],x[2]));
+
+const meter=[
+[["h","v"],"v"],[["v","a","a","v"],"v"],[["s","s","v","h"],"v"],[["h","v","s","s"],"v"],
+[["v","a","a","a","a"],"v"],[["v","v","s","s","a"],"v"],[["h","s","s","a"],"v"],[["h","s","s","s","s"],"v"],
+[["v","v","v"],"v"],[["a","a","v","v"],"h"],[["h","a","a"],"v"],[["v","v","s","s"],"h"],
+[["v","a","a","v","s","s"],"v"],[["v","v","a","a"],"h"],[["a","a","a","a","v","v"],"h"],
+[["h","v"],"v"],[["v","a","a","a","a"],"v"],[["v","v","s","s","a"],"v"],
+[["h","s","s","a"],"v"],[["h","s","s","s","s"],"v"],[["v","v","v"],"v"],
+[["a","a","v","v"],"h"],[["h","a","a"],"v"],[["v","v","s","s"],"h"]
+];
+meter.forEach(([notes,ans])=>{
+ const used=notes.reduce((z,n)=>z+V[n],0);
+ if(Math.abs(used+V[ans]-4)>1e-9) throw new Error("Ungültige Taktaufgabe");
+ add("takt","Fülle den 4/4-Takt genau auf 4 Schläge auf.",["v","a","s","h"].map(x=>x===ans?N[x]:N[x]),N[ans],`${fmt(used)} + ${fmt(V[ans])} = 4 Schläge`,notes);
+});
+
+function fmt(n){return String(n).replace(".",",")}
+let round=[],i=0,score=0,streak=0,lives=3,right=0,bonus=0,started=0,qstarted=0,elapsed=0,timer=null,locked=false;
+function startQuiz(){
+ clearInterval(timer);const groups=[
+  tasks.filter(t=>t.kind==="Wissen"),
+  tasks.filter(t=>t.kind==="Rechnen"),
+  tasks.filter(t=>t.kind==="Takt")
+];
+round=[];
+groups.forEach(g=>{ round.push(...sh(g).slice(0,5)); });
+round=sh(round).slice(0,15);i=0;points=0;streak=0;lives=3;right=0;bonus=0;elapsed=0;locked=false;
+ home.classList.add("hidden");result.classList.add("hidden");game.classList.remove("hidden");
+ started=performance.now();qstarted=started;timer=setInterval(()=>{elapsed=(performance.now()-started)/1000;clock.textContent=fmt(elapsed.toFixed(1))},100);render();
+}
+function render(){
+ locked=false;qstarted=performance.now();scoreEl();
+ progress.style.width=(i/15*100)+"%";
+ const t=round[i];t.type==="takt"?renderMeter(t):renderNormal(t);
+}
+function renderNormal(t){
+ area.innerHTML=`<div class="q">${t.q}</div><div class="answers">${sh(t.opts).map(o=>`<button class="answer">${o}</button>`).join("")}</div><div id="feedback" class="feedback"></div>`;
+ document.querySelectorAll(".answer").forEach(b=>b.onclick=()=>check(b,b.textContent,t.answer,t.explain));
+}
+function renderMeter(t){
+ const used=t.notes.reduce((z,n)=>z+V[n],0),missing=4-used;
+ const correctLabel=t.answer, labels=[...new Set(["Viertel","Achtel","Sechzehntel","Halbe"])];
+ area.innerHTML=`<div class="q">🥁 Fülle den <b>4/4-Takt</b> genau auf <b>4 Schläge</b> auf.</div>
+ <div class="barBox"><div class="barHead"><span>Dein Takt</span><small>${fmt(used)} / 4 · es fehlen ${fmt(missing)}</small></div>${staff(t.notes)}</div>
+ <div class="choices">${sh(labels).map(label=>`<button class="noteBtn"><div class="noteIcon">${mini(label)}</div>${label}<br><small>${label==="Ganze"?"4":label==="Halbe"?"2":label==="Viertel"?"1":label==="Achtel"?"½":"¼"} Schlag${label==="Viertel"?"":"e"}</small></button>`).join("")}</div>
+ <div class="hint">Zähle die vorhandenen Noten zuerst zusammen.</div><div id="feedback" class="feedback"></div>`;
+ document.querySelectorAll(".noteBtn").forEach(b=>b.onclick=()=>check(b,b.textContent.split("\n")[0].trim(),correctLabel,t.explain));
+}
+function staff(notes){
+ const W=Math.max(710,notes.length*78+225),y=96;let s=`<svg viewBox="0 0 ${W} 185" aria-label="4/4-Takt">`;
+ for(let j=0;j<5;j++)s+=`<line x1="45" y1="${y+j*12}" x2="${W-45}" y2="${y+j*12}" stroke="#18263b" stroke-width="2"/>`;
+ s+=`<text x="52" y="135" font-size="65" font-family="serif" fill="#18263b">𝄞</text>`;
+ s+=`<text x="98" y="104" font-size="23" font-weight="800" fill="#18263b">4</text><text x="98" y="130" font-size="23" font-weight="800" fill="#18263b">4</text>`;
+ s+=`<line x1="132" y1="89" x2="132" y2="150" stroke="#18263b" stroke-width="3"/>`;
+ notes.forEach((n,k)=>s+=drawNote(n,180+k*75));s+=`<line x1="${150+notes.length*75}" y1="89" x2="${150+notes.length*75}" y2="150" stroke="#18263b" stroke-width="3"/>`;
+ return s+"</svg>";
+}
+function drawNote(n,x){
+ const cy={g:96,h:102,v:108,a:102,s:108}[n],sx=x+8,top=cy-43;
+ let s=`<ellipse cx="${x}" cy="${cy}" rx="10" ry="6.5" transform="rotate(-18 ${x} ${cy})" fill="#18263b"/>`;
+ if(n!=="g")s+=`<line x1="${sx}" y1="${cy}" x2="${sx}" y2="${top}" stroke="#18263b" stroke-width="3.5"/>`;
+ if(n==="a"||n==="s"){s+=`<path d="M${sx} ${top}q17 4 18 13" fill="none" stroke="#18263b" stroke-width="3.5" stroke-linecap="round"/>`;if(n==="s")s+=`<path d="M${sx} ${top+9}q17 4 18 13" fill="none" stroke="#18263b" stroke-width="3.5" stroke-linecap="round"/>`}
+ return s;
+}
+function mini(label){
+ const n={Ganze:"g",Halbe:"h",Viertel:"v",Achtel:"a",Sechzehntel:"s"}[label];
+ return `<svg viewBox="0 0 72 52">${drawNote(n,34)}</svg>`;
+}
+function check(btn,given,correct,explain){
+ if(locked)return;locked=true;const speed=(performance.now()-qstarted)/1000;
+ const b=Math.max(0,Math.round(120-Math.min(speed,12)*10));
+ const fb=document.getElementById("feedback");
+ if(given===correct){streak++;right++;bonus+=b;const gain=100+b+Math.min(streak*10,50);points+=gain;fb.className="feedback good";fb.innerHTML=`Richtig! +${gain} Punkte 🎉${explain?`<br><small>${explain}</small>`:""}`;celebrate();game.classList.add("flash");setTimeout(()=>game.classList.remove("flash"),700)}
+ else{lives--;streak=0;fb.className="feedback bad";fb.innerHTML=`Nicht ganz.${explain?`<br><small>${explain}</small>`:""}`}
+ scoreEl();setTimeout(()=>{if(lives<=0||i===14)finish();else{i++;render()}},900);
+}
+function scoreEl(){score.textContent=window.score;streakEl.textContent=streak;livesEl.textContent=lives}
+function celebrate(){
+ const root=document.getElementById("fx"),c=["✦","♪","♫","★","♩","✧"];
+ for(let k=0;k<25;k++){const e=document.createElement("span");e.className="p";e.textContent=c[k%c.length];e.style.left=(50+Math.random()*8-4)+"%";e.style.top=(48+Math.random()*8-4)+"%";e.style.setProperty("--x",(Math.random()*440-220)+"px");e.style.setProperty("--y",(Math.random()*340-220)+"px");e.style.animationDelay=(Math.random()*.15)+"s";root.appendChild(e);setTimeout(()=>e.remove(),1300)}
+}
+function finish(){
+ clearInterval(timer);game.classList.add("hidden");result.classList.remove("hidden");progress.style.width="100%";
+ total.textContent=window.score;rightEl.textContent=right+"/15";bonusEl.textContent=bonus;roundTime.textContent=fmt(elapsed.toFixed(1))+" s";
+ message.textContent=right===15?"Perfekt! 🌟":right>=12?"Sehr stark! 🔥":right>=8?"Gut gemacht! 🎵":"Schau dir die Notenwerte noch einmal an und versuche eine neue Runde!";
+}
+const home=document.getElementById("home"),game=document.getElementById("game"),result=document.getElementById("result"),area=document.getElementById("area"),progress=document.getElementById("progress"),clock=document.getElementById("clock"),scoreEl=document.getElementById("score"),streakEl=document.getElementById("streak"),livesEl=document.getElementById("lives"),total=document.getElementById("total"),rightEl=document.getElementById("right"),bonusEl=document.getElementById("bonus"),roundTime=document.getElementById("roundTime"),message=document.getElementById("message");
+</script>
+</body>
+</html>
