@@ -1,358 +1,392 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notendorf – Das Rhythmus-Abenteuer</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythm Runner</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      color: #243047;
-      background: linear-gradient(#a9e8ff, #e5f7ff);
-      text-align: center;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #14152b;
+  color: white;
+  text-align: center;
+  overflow-x: hidden;
+}
 
-    h1 {
-      margin: 12px 0 4px;
-      color: #4c2d72;
-    }
+h1 {
+  margin: 12px 0 4px;
+  color: #ffd166;
+}
 
-    p {
-      margin: 6px;
-    }
+#game {
+  width: min(100%, 900px);
+  margin: auto;
+}
 
-    #game {
-      width: min(100% - 20px, 900px);
-      margin: auto;
-    }
+#info {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  font-weight: bold;
+}
 
-    #status {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 10px;
-      margin: 10px 0;
-      background: #ffffffcc;
-      border-radius: 14px;
-      font-weight: bold;
-    }
+#scene {
+  position: relative;
+  height: 440px;
+  overflow: hidden;
+  border: 4px solid #5145a4;
+  border-radius: 18px;
+  background:
+    linear-gradient(#292a63 0 65%, #20213e 65% 100%);
+}
 
-    #map {
-      position: relative;
-      min-height: 430px;
-      overflow: hidden;
-      border: 5px solid #68499b;
-      border-radius: 22px;
-      background:
-        radial-gradient(circle at 20% 20%, #ffffff 0 3%, transparent 4%),
-        radial-gradient(circle at 75% 15%, #ffffff 0 4%, transparent 5%),
-        linear-gradient(#72d4f2 0 48%, #82cf69 48% 100%);
-    }
+.star {
+  position: absolute;
+  color: #fff3a3;
+  font-size: 20px;
+}
 
-    .cloud {
-      position: absolute;
-      font-size: 42px;
-      opacity: .8;
-    }
+.s1 { left: 10%; top: 12%; }
+.s2 { left: 32%; top: 22%; }
+.s3 { right: 20%; top: 10%; }
+.s4 { right: 8%; top: 30%; }
 
-    .cloud.one { left: 8%; top: 8%; }
-    .cloud.two { right: 10%; top: 18%; }
+#ground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 125px;
+  background: repeating-linear-gradient(
+    45deg,
+    #36a269,
+    #36a269 18px,
+    #278052 18px,
+    #278052 36px
+  );
+  border-top: 8px solid #8b5a3c;
+}
 
-    .place {
-      position: absolute;
-      padding: 14px 10px;
-      min-width: 120px;
-      border: 3px solid #61458c;
-      border-radius: 18px;
-      background: #fff7cf;
-      box-shadow: 0 5px 0 #b18d45;
-      font-weight: bold;
-    }
+#player {
+  position: absolute;
+  left: 50px;
+  bottom: 125px;
+  font-size: 46px;
+  z-index: 5;
+  transition: left .6s ease, bottom .2s ease;
+}
 
-    .village { left: 8%; bottom: 20%; }
-    .bridge { left: 43%; bottom: 28%; }
-    .forest { right: 7%; bottom: 16%; }
+#player.jump {
+  animation: jump .7s ease;
+}
 
-    .locked {
-      filter: grayscale(1);
-      opacity: .65;
-    }
+@keyframes jump {
+  0% { bottom: 125px; }
+  50% { bottom: 230px; }
+  100% { bottom: 125px; }
+}
 
-    #player {
-      position: absolute;
-      left: 25%;
-      bottom: 8%;
-      font-size: 42px;
-      transition: .5s;
-      animation: bounce 1.2s infinite alternate;
-    }
+.platform {
+  position: absolute;
+  bottom: 210px;
+  width: 120px;
+  height: 18px;
+  border-radius: 10px;
+  background: #d99242;
+}
 
-    @keyframes bounce {
-      from { transform: translateY(0); }
-      to { transform: translateY(-7px); }
-    }
+.p1 { left: 210px; }
+.p2 { left: 430px; bottom: 270px; }
+.p3 { right: 80px; }
 
-    #message {
-      min-height: 28px;
-      margin: 10px;
-      font-weight: bold;
-      color: #633d8f;
-    }
+.obstacle {
+  position: absolute;
+  bottom: 125px;
+  font-size: 42px;
+}
 
-    button {
-      border: 0;
-      border-radius: 12px;
-      padding: 11px 15px;
-      margin: 4px;
-      background: #734bb0;
-      color: white;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 0 3px 0 #4b2a78;
-    }
+.o1 { left: 300px; }
+.o2 { left: 570px; }
+.o3 { right: 170px; }
 
-    button:hover {
-      background: #8c65c4;
-    }
+#task {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90%, 500px);
+  padding: 20px;
+  border: 4px solid #ffd166;
+  border-radius: 20px;
+  background: #24264e;
+  box-shadow: 0 0 30px #000;
+}
 
-    button:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 0 #4b2a78;
-    }
+#symbol {
+  margin: 12px;
+  font-size: 80px;
+  color: #ffd166;
+}
 
-    button:disabled {
-      background: #aaa;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
+#answers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
 
-    #panel {
-      display: none;
-      margin: 14px auto;
-      padding: 18px;
-      background: #fff;
-      border-radius: 18px;
-      border: 3px solid #68499b;
-    }
+button {
+  padding: 13px;
+  border: 0;
+  border-radius: 12px;
+  background: #7067d8;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
 
-    #selectedNotes {
-      min-height: 45px;
-      margin: 12px auto;
-      padding: 10px;
-      background: #f2eaff;
-      border-radius: 12px;
-      font-size: 1.5rem;
-    }
+button:hover {
+  background: #8e86ed;
+}
 
-    .note {
-      min-width: 90px;
-      background: #e99443;
-      box-shadow: 0 3px 0 #a55b1f;
-    }
+#start,
+#continue {
+  margin: 12px;
+  background: #ef8354;
+}
 
-    .note small {
-      display: block;
-      font-size: .75rem;
-    }
+#message {
+  min-height: 28px;
+  padding: 8px;
+  color: #ffd166;
+  font-weight: bold;
+}
 
-    #success {
-      display: none;
-      font-size: 1.4rem;
-      color: #15803d;
-      font-weight: bold;
-    }
+.correct {
+  color: #75e06f;
+}
 
-    @media (max-width: 600px) {
-      #map {
-        min-height: 360px;
-      }
+.wrong {
+  color: #ff6b6b;
+}
 
-      .place {
-        min-width: 95px;
-        font-size: .85rem;
-        padding: 10px 5px;
-      }
+@media (max-width: 600px) {
+  #scene {
+    height: 390px;
+  }
 
-      #player {
-        font-size: 34px;
-      }
+  #player {
+    left: 25px;
+  }
 
-      button {
-        font-size: .9rem;
-      }
-    }
-  </style>
+  .platform {
+    transform: scale(.75);
+  }
+
+  .obstacle {
+    transform: scale(.8);
+  }
+}
+</style>
 </head>
 
 <body>
-  <main id="game">
-    <h1>🎵 Notendorf</h1>
-    <p>Das Rhythmus-Abenteuer</p>
 
-    <section id="status">
-      <span>⭐ Punkte: <b id="points">0</b></span>
-      <span>🔓 Bereiche: <b id="areas">1</b>/3</span>
-      <span>🎒 Belohnung: <b id="reward">Keine</b></span>
-    </section>
+<div id="game">
+  <h1>🎵 Rhythm Runner</h1>
+  <p>Springe über Hindernisse und löse die Rhythmus-Aufgaben!</p>
 
-    <section id="map">
-      <div class="cloud one">☁️</div>
-      <div class="cloud two">☁️</div>
+  <div id="info">
+    <span>❤️ Leben: <b id="lives">3</b></span>
+    <span>⭐ Punkte: <b id="score">0</b></span>
+    <span>🏁 Level: <b id="level">1</b></span>
+  </div>
 
-      <div class="place village">
-        🏘️<br>
-        Notendorf
-      </div>
+  <div id="scene">
+    <span class="star s1">✦</span>
+    <span class="star s2">✦</span>
+    <span class="star s3">✦</span>
+    <span class="star s4">✦</span>
 
-      <div class="place bridge">
-        🌉<br>
-        Rhythmusbrücke
-      </div>
+    <div class="platform p1"></div>
+    <div class="platform p2"></div>
+    <div class="platform p3"></div>
 
-      <div class="place forest locked" id="forest">
-        🌲<br>
-        Klangwald 🔒
-      </div>
+    <div class="obstacle o1">🪨</div>
+    <div class="obstacle o2">🌵</div>
+    <div class="obstacle o3">🔥</div>
 
-      <div id="player">🧑‍🎤</div>
-    </section>
+    <div id="ground"></div>
+    <div id="player">🧑‍🎤</div>
 
-    <div id="message">
-      Willkommen in Notendorf! Öffne die Rhythmusbrücke.
+    <div id="task">
+      <h2>🎼 Rhythmus-Aufgabe</h2>
+      <p>Wie viele Zählzeiten hat dieses Zeichen?</p>
+      <div id="symbol">♩</div>
+      <div id="answers"></div>
+      <p id="taskMessage"></p>
     </div>
+  </div>
 
-    <button id="startButton">🎼 Brücke untersuchen</button>
+  <div id="message">Bereit für das Abenteuer?</div>
+  <button id="start">▶️ Spiel starten</button>
+  <button id="continue" style="display:none">➡️ Weiterlaufen</button>
+</div>
 
-    <section id="panel">
-      <h2>🔐 Die Rhythmusbrücke</h2>
-      <p>
-        Stelle genau <strong>4 Zählzeiten</strong> zusammen.
-        Wähle passende Noten aus:
-      </p>
+<script>
+const tasks = [
+  { symbol: "♩", answer: "1", options: ["0,5", "1", "2"] },
+  { symbol: "𝅗𝅥", answer: "2", options: ["1", "2", "4"] },
+  { symbol: "𝅝", answer: "4", options: ["2", "3", "4"] },
+  { symbol: "♪", answer: "0,5", options: ["0,5", "1", "2"] }
+];
 
-      <div id="notes"></div>
+let currentTask = 0;
+let score = 0;
+let lives = 3;
+let level = 1;
+let playing = false;
+let taskOpen = false;
 
-      <div id="selectedNotes">Noch keine Noten ausgewählt</div>
-      <p>Aktuelle Zählzeiten: <strong id="beats">0</strong> / 4</p>
+const player = document.getElementById("player");
+const taskBox = document.getElementById("task");
+const symbolBox = document.getElementById("symbol");
+const answersBox = document.getElementById("answers");
+const taskMessage = document.getElementById("taskMessage");
+const message = document.getElementById("message");
 
-      <button id="checkButton">✅ Lösung prüfen</button>
-      <button id="clearButton">↩️ Zurücksetzen</button>
+function updateInfo() {
+  document.getElementById("lives").textContent = lives;
+  document.getElementById("score").textContent = score;
+  document.getElementById("level").textContent = level;
+}
 
-      <div id="success">
-        🎉 Geschafft! Die Brücke ist geöffnet!
-      </div>
-    </section>
-  </main>
+function movePlayer() {
+  if (!playing || taskOpen) return;
 
-  <script>
-    const noteTypes = [
-      { symbol: "𝅝", name: "Ganze Note", beats: 4 },
-      { symbol: "𝅗𝅥", name: "Halbe Note", beats: 2 },
-      { symbol: "♩", name: "Viertelnote", beats: 1 },
-      { symbol: "♪", name: "Achtelnote", beats: 0.5 }
-    ];
+  const newPosition = Math.min(
+    player.offsetLeft + 105,
+    document.getElementById("scene").clientWidth - 80
+  );
 
-    let selected = [];
-    let points = 0;
-    let bridgeSolved = false;
+  player.style.left = newPosition + "px";
+  player.classList.add("jump");
 
-    const panel = document.getElementById("panel");
-    const notesBox = document.getElementById("notes");
-    const selectedBox = document.getElementById("selectedNotes");
-    const beatsText = document.getElementById("beats");
-    const message = document.getElementById("message");
-    const player = document.getElementById("player");
-    const forest = document.getElementById("forest");
-    const reward = document.getElementById("reward");
+  setTimeout(() => {
+    player.classList.remove("jump");
+  }, 700);
 
-    function renderNotes() {
-      notesBox.innerHTML = "";
+  if (currentTask < tasks.length) {
+    setTimeout(openTask, 750);
+  } else {
+    winGame();
+  }
+}
 
-      noteTypes.forEach(note => {
-        const button = document.createElement("button");
-        button.className = "note";
-        button.innerHTML = `${note.symbol}<small>${note.name}<br>${note.beats} Zählzeit${note.beats !== 1 ? "en" : ""}</small>`;
+function openTask() {
+  if (!playing) return;
 
-        button.onclick = () => {
-          const total = selected.reduce((sum, n) => sum + n.beats, 0);
+  taskOpen = true;
+  const task = tasks[currentTask];
 
-          if (total + note.beats <= 4) {
-            selected.push(note);
-            renderSelected();
-          } else {
-            message.textContent = "⚠️ Das wären mehr als 4 Zählzeiten.";
-          }
-        };
+  symbolBox.textContent = task.symbol;
+  answersBox.innerHTML = "";
+  taskMessage.textContent = "";
 
-        notesBox.appendChild(button);
-      });
+  task.options.forEach(option => {
+    const button = document.createElement("button");
+    button.textContent = option;
+    button.onclick = () => checkAnswer(option);
+    answersBox.appendChild(button);
+  });
+
+  taskBox.style.display = "block";
+}
+
+function checkAnswer(answer) {
+  const task = tasks[currentTask];
+
+  if (answer === task.answer) {
+    score += 100;
+    taskMessage.textContent = "✅ Richtig! Du darfst weiterlaufen.";
+    taskMessage.className = "correct";
+
+    setTimeout(() => {
+      taskBox.style.display = "none";
+      taskOpen = false;
+      currentTask++;
+      level = Math.min(3, Math.floor(currentTask / 2) + 1);
+      updateInfo();
+
+      if (currentTask >= tasks.length) {
+        winGame();
+      } else {
+        message.textContent = "Gut gemacht! Springe zum nächsten Hindernis.";
+      }
+    }, 800);
+  } else {
+    lives--;
+    updateInfo();
+
+    taskMessage.textContent = "❌ Leider falsch. Versuch es noch einmal.";
+    taskMessage.className = "wrong";
+
+    if (lives <= 0) {
+      gameOver();
     }
+  }
+}
 
-    function renderSelected() {
-      if (selected.length === 0) {
-        selectedBox.textContent = "Noch keine Noten ausgewählt";
-      } else {
-        selectedBox.textContent = selected.map(note => note.symbol).join("  ");
-      }
+function winGame() {
+  playing = false;
+  taskOpen = false;
+  taskBox.style.display = "none";
+  message.textContent = "🏆 Glückwunsch! Du hast das Rhythmus-Level geschafft!";
+  document.getElementById("continue").style.display = "none";
+}
 
-      const total = selected.reduce((sum, n) => sum + n.beats, 0);
-      beatsText.textContent = total;
-    }
+function gameOver() {
+  playing = false;
+  taskOpen = false;
+  taskBox.style.display = "none";
+  message.textContent = "💥 Game Over! Starte das Spiel erneut.";
+  document.getElementById("start").style.display = "inline-block";
+  document.getElementById("continue").style.display = "none";
+}
 
-    document.getElementById("startButton").onclick = () => {
-      panel.style.display = "block";
-      document.getElementById("startButton").disabled = true;
-      message.textContent = "Wähle Noten aus, deren Summe genau 4 ergibt.";
-      renderNotes();
-    };
+document.getElementById("start").onclick = () => {
+  currentTask = 0;
+  score = 0;
+  lives = 3;
+  level = 1;
+  playing = true;
+  taskOpen = false;
 
-    document.getElementById("clearButton").onclick = () => {
-      selected = [];
-      renderSelected();
-      message.textContent = "Die Auswahl wurde zurückgesetzt.";
-    };
+  player.style.left = "50px";
+  updateInfo();
 
-    document.getElementById("checkButton").onclick = () => {
-      const total = selected.reduce((sum, n) => sum + n.beats, 0);
+  document.getElementById("start").style.display = "none";
+  document.getElementById("continue").style.display = "inline-block";
+  message.textContent = "Laufe los und löse die Aufgaben!";
+};
 
-      if (total === 4) {
-        bridgeSolved = true;
-        points += 100;
+document.getElementById("continue").onclick = movePlayer;
 
-        document.getElementById("points").textContent = points;
-        document.getElementById("areas").textContent = "2";
-        reward.textContent = "Rhythmus-Schlüssel";
-        forest.classList.remove("locked");
+document.addEventListener("keydown", event => {
+  if (event.code === "Space" || event.code === "ArrowRight") {
+    event.preventDefault();
+    movePlayer();
+  }
+});
+</script>
 
-        player.style.left = "54%";
-        message.textContent = "🌉 Die Spielfigur überquert die Brücke!";
-
-        document.getElementById("success").style.display = "block";
-        document.getElementById("checkButton").disabled = true;
-      } else {
-        message.textContent = "❌ Noch nicht richtig. Die Summe muss genau 4 sein.";
-      }
-    };
-
-    forest.onclick = () => {
-      if (!bridgeSolved) {
-        message.textContent = "🔒 Der Klangwald ist noch verschlossen.";
-      } else {
-        points += 50;
-        document.getElementById("points").textContent = points;
-        reward.textContent = "Klangwald-Abzeichen";
-        document.getElementById("areas").textContent = "3";
-        player.style.left = "80%";
-        message.textContent = "🌲 Willkommen im Klangwald! Ein neues Gebiet wurde entdeckt.";
-      }
-    };
-  </script>
 </body>
 </html>
