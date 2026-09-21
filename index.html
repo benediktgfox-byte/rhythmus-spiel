@@ -431,66 +431,8 @@
 }
 
 .highscore-area {
-  margin: 18px 0 28px;
-  width: 100%;
-}
-
-.highscore-title {
-  font-size: 1.25rem;
-  margin-bottom: 12px;
-  color: var(--text);
-  font-weight: 900;
-  letter-spacing: -0.03em;
-}
-
-.highscore-list {
-  display: grid;
-  gap: 10px;
-  width: 100%;
-}
-
-.highscore-entry {
-  display: grid;
-  grid-template-columns: 40px 1fr auto;
-  gap: 12px;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 12px 14px;
-  color: var(--text);
-}
-
-.highscore-rank {
-  font-weight: 950;
-  color: var(--accent);
-  text-align: left;
-}
-
-.highscore-name {
-  font-weight: 850;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.highscore-score {
-  font-weight: 950;
-  color: var(--white);
-  text-align: right;
-  white-space: nowrap;
-}
-
-.no-highscores {
-  color: var(--muted);
-  font-weight: 700;
-  margin: 0;
-}
-
-.highscore-area {
   margin: 20px auto 28px;
-  width: min(520px, 100%);
+  width: min(560px, 100%);
 }
 
 .highscore-title {
@@ -498,7 +440,6 @@
   margin: 0 0 12px;
   color: var(--text);
   font-weight: 900;
-  letter-spacing: -0.03em;
   text-align: center;
 }
 
@@ -510,22 +451,29 @@
 
 .highscore-entry {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
+  grid-template-columns: 42px minmax(0, 1fr) 130px;
   gap: 12px;
   align-items: center;
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 12px 14px;
-  color: var(--text);
   font-size: 1rem;
   line-height: 1.2;
 }
 
+.highscore-entry span {
+  display: block;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  background: transparent;
+}
+
 .highscore-rank {
   font-weight: 950;
-  color: var(--accent);
+  color: var(--accent) !important;
+  -webkit-text-fill-color: var(--accent) !important;
   text-align: left;
 }
 
@@ -539,7 +487,6 @@
 
 .highscore-score {
   font-weight: 950;
-  color: var(--white);
   text-align: right;
   white-space: nowrap;
 }
@@ -550,6 +497,7 @@
   margin: 0;
   text-align: center;
 }
+
 
 #nameOverlay {
   background:
@@ -1099,11 +1047,9 @@ let currentLevel = 1;
   endScreen.classList.remove("hidden");
   progress.style.width = "100%";
 
-  finalScore.innerHTML = `
-    <div>${score}</div>
-    <div class="highscore-title">Highscores</div>
-    ${createHighscoreHTML()}
-  `;
+finalScore.textContent = score;
+  highscoreContainer.innerHTML = createHighscoreHTML();
+  
 }
 
 function getHighscores() {
