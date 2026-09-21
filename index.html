@@ -1029,8 +1029,13 @@ let currentLevel = 1;
       } else {
         feedbackIcon.textContent = "×";
         feedbackIcon.className = "popup-icon bad";
-        feedbackTitle.textContent = "Nicht ganz!";
-        feedbackText.textContent = "0 Punkte";
+        const correctAnswer = questions[currentQuestion].answers[questions[currentQuestion].correct];
+
+feedbackTitle.textContent = "Leider falsch!";
+feedbackText.innerHTML = `
+  Richtig wäre:<br>
+  <strong>${correctAnswer}</strong>
+`;
       }
     }
 
