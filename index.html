@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notenwerte Quiz 2.0</title>
+  <title>Das Notenwerte Quiz</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
 
   <style>
     :root {
-      --bg1: #7c3aed;
-      --bg2: #06b6d4;
-      --card: rgba(255, 255, 255, 0.92);
-      --dark: #1f2937;
-      --muted: #6b7280;
-      --primary: #7c3aed;
-      --primary2: #06b6d4;
-      --good: #22c55e;
-      --bad: #ef4444;
+      --bg: #0f172a;
+      --card: #111827;
+      --card-light: #1f2937;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #a78bfa;
+      --success: #22c55e;
+      --danger: #ef4444;
       --warning: #f59e0b;
       --white: #ffffff;
-      --shadow: 0 20px 50px rgba(0,0,0,0.22);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
     }
 
     * {
@@ -28,1133 +30,907 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--dark);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.35), transparent 30%),
-        linear-gradient(135deg, var(--bg1), var(--bg2));
-      overflow-x: hidden;
-    }
-
-    .page {
-      min-height: 100vh;
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.18), transparent 35%),
+        var(--bg);
+      color: var(--text);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 22px;
     }
 
-    .quiz-shell {
-      width: min(1000px, 100%);
-      background: var(--card);
-      border-radius: 32px;
+    .app {
+      width: min(980px, 100%);
+      min-height: 680px;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 30px;
       box-shadow: var(--shadow);
       overflow: hidden;
-      position: relative;
-      border: 3px solid rgba(255,255,255,0.6);
+      backdrop-filter: blur(18px);
     }
 
     header {
-      padding: 24px 28px;
-      background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(6,182,212,0.95));
-      color: white;
+      padding: 28px 30px 18px;
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
+      gap: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .title-area h1 {
+    h1 {
       margin: 0;
-      font-size: clamp(1.6rem, 4vw, 2.7rem);
+      font-size: clamp(1.6rem, 3vw, 2.7rem);
       letter-spacing: -0.04em;
+      line-height: 1;
     }
 
-    .title-area p {
-      margin: 6px 0 0;
-      opacity: 0.95;
-      font-size: 1rem;
-    }
-
-    .badge-row {
+    .status {
       display: flex;
-      gap: 10px;
+      align-items: center;
+      gap: 12px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .badge {
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.4);
-      backdrop-filter: blur(10px);
+    .pill {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
       padding: 10px 14px;
-      border-radius: 999px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    main {
-      padding: 28px;
-    }
-
-    .start-screen,
-    .quiz-screen,
-    .result-screen {
-      display: none;
-    }
-
-    .active {
-      display: block;
-    }
-
-    .hero-card {
-      display: grid;
-      grid-template-columns: 1.3fr 0.7fr;
-      gap: 24px;
-      align-items: center;
-    }
-
-    .hero-text h2 {
-      font-size: clamp(1.8rem, 4vw, 3.2rem);
-      margin: 0 0 12px;
-      line-height: 1.05;
-    }
-
-    .hero-text p {
-      color: var(--muted);
-      font-size: 1.1rem;
-      line-height: 1.6;
-    }
-
-    .feature-grid {
-      margin-top: 22px;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .feature {
-      background: white;
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
       font-weight: 700;
-    }
-
-    .mascot {
-      background: linear-gradient(135deg, #fef3c7, #fbcfe8);
-      border-radius: 30px;
-      min-height: 260px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      color: var(--text);
+      min-width: 92px;
       text-align: center;
-      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.7);
-      padding: 20px;
     }
 
-    .mascot .note {
-      font-size: clamp(5rem, 14vw, 9rem);
-      animation: float 2.4s ease-in-out infinite;
-      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.18));
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(-5deg); }
-      50% { transform: translateY(-16px) rotate(5deg); }
-    }
-
-    .btn {
-      border: 0;
-      cursor: pointer;
-      border-radius: 18px;
-      padding: 15px 22px;
-      font-size: 1rem;
-      font-weight: 900;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.03);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn-primary {
-      color: white;
-      background: linear-gradient(135deg, var(--primary), var(--primary2));
-      box-shadow: 0 12px 24px rgba(124,58,237,0.28);
-    }
-
-    .btn-secondary {
-      background: white;
-      color: var(--primary);
-      border: 2px solid rgba(124,58,237,0.25);
-    }
-
-    .start-actions {
-      margin-top: 24px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-
-    .stat {
-      background: white;
-      border-radius: 18px;
-      padding: 14px;
-      text-align: center;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-    }
-
-    .stat span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .stat strong {
-      display: block;
-      margin-top: 4px;
-      font-size: 1.35rem;
-    }
-
-    .progress-outer {
-      height: 14px;
-      background: rgba(31,41,55,0.1);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-bottom: 22px;
-    }
-
-    .progress-inner {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary), var(--primary2));
-      border-radius: inherit;
-      transition: width 0.3s ease;
-    }
-
-    .question-card {
-      background: white;
-      border-radius: 28px;
-      padding: 26px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    .timer-pill {
       position: relative;
       overflow: hidden;
     }
 
-    .type-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+    .timer-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.24), rgba(167, 139, 250, 0.24));
+      z-index: 0;
+      transition: width 0.2s linear;
+    }
+
+    .timer-pill span {
+      position: relative;
+      z-index: 1;
+    }
+
+    main {
+      padding: 28px 30px 34px;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.09);
       border-radius: 999px;
-      background: #eef2ff;
-      color: #4338ca;
-      font-weight: 900;
-      margin-bottom: 16px;
+      overflow: hidden;
+      margin-bottom: 28px;
     }
 
-    .question-title {
-      font-size: clamp(1.35rem, 3vw, 2.1rem);
-      margin: 0 0 18px;
-      line-height: 1.25;
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 999px;
+      transition: width 0.35s ease;
     }
 
-    .big-note {
-      font-size: clamp(4rem, 12vw, 7rem);
-      line-height: 1;
-      text-align: center;
-      margin: 14px 0 20px;
-      color: var(--primary);
-      text-shadow: 0 8px 20px rgba(124,58,237,0.18);
-    }
-
-    .measure {
-      margin: 18px auto 22px;
-      width: min(620px, 100%);
-      background: #fff7ed;
-      border: 3px solid #fdba74;
-      border-left: 8px solid #fb923c;
-      border-right: 8px solid #fb923c;
-      border-radius: 16px;
-      padding: 18px;
+    .question-card {
+      background: linear-gradient(180deg, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 26px;
+      padding: 30px;
+      min-height: 485px;
       display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .question-top {
+      display: grid;
+      gap: 24px;
+    }
+
+    .question-number {
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+
+    .question-text {
+      font-size: clamp(1.45rem, 3vw, 2.2rem);
+      line-height: 1.18;
+      letter-spacing: -0.035em;
+      margin: 0;
+      max-width: 820px;
+      font-weight: 850;
+    }
+
+    .notation-area {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 16px 14px 10px;
+      min-height: 150px;
+      display: none;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      min-height: 100px;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.12);
+      overflow: hidden;
     }
 
-    .measure-note {
-      background: white;
-      border-radius: 14px;
-      padding: 10px 14px;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.1);
-      font-size: 1.5rem;
-      font-weight: 900;
+    .notation-area.active {
+      display: flex;
     }
 
-    .measure-missing {
-      border: 3px dashed #fb923c;
-      color: #c2410c;
-      background: #ffedd5;
+    .notation-area svg {
+      max-width: 100%;
+      height: auto;
     }
 
-    .options {
+    .answers {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
-      margin-top: 16px;
+      margin-top: 28px;
     }
 
-    .option {
-      background: #f9fafb;
-      border: 3px solid transparent;
-      border-radius: 20px;
-      padding: 18px;
-      min-height: 74px;
-      font-size: 1.05rem;
-      font-weight: 900;
-      color: var(--dark);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      text-align: center;
-    }
-
-    .option:hover:not(:disabled) {
-      transform: translateY(-2px);
-      background: #eef2ff;
-      border-color: #c4b5fd;
-    }
-
-    .option:disabled {
-      cursor: not-allowed;
-    }
-
-    .option.correct {
-      background: #dcfce7;
-      border-color: var(--good);
-      color: #166534;
-      animation: correctPulse 0.55s ease;
-    }
-
-    .option.wrong {
-      background: #fee2e2;
-      border-color: var(--bad);
-      color: #991b1b;
-      animation: shake 0.35s ease;
-    }
-
-    @keyframes correctPulse {
-      0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
-      50% { transform: scale(1.04); box-shadow: 0 0 35px rgba(34,197,94,0.55); }
-      100% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
-    }
-
-    .feedback {
-      margin-top: 18px;
-      padding: 14px 16px;
+    .answer {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
       border-radius: 18px;
-      font-weight: 800;
+      padding: 18px 18px;
+      text-align: left;
+      font-size: 1.05rem;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+      min-height: 64px;
+    }
+
+    .answer:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(56, 189, 248, 0.55);
+    }
+
+    .answer:disabled {
+      cursor: not-allowed;
+      opacity: 0.78;
+      transform: none;
+    }
+
+    .answer.correct {
+      border-color: rgba(34, 197, 94, 0.85);
+      background: rgba(34, 197, 94, 0.16);
+    }
+
+    .answer.wrong {
+      border-color: rgba(239, 68, 68, 0.85);
+      background: rgba(239, 68, 68, 0.16);
+    }
+
+    .start-screen,
+    .end-screen {
+      min-height: 560px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .start-box,
+    .end-box {
+      width: min(560px, 100%);
+      background: rgba(31, 41, 55, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 38px;
+      box-shadow: var(--shadow);
+    }
+
+    .big-title {
+      font-size: clamp(2.2rem, 7vw, 4.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+      margin: 0 0 28px;
+    }
+
+    .primary-btn {
+      border: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #06111f;
+      font-weight: 900;
+      font-size: 1.1rem;
+      padding: 16px 24px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 14px 38px rgba(56, 189, 248, 0.25);
+      transition: transform 0.18s ease, filter 0.18s ease;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
       display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.55);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      padding: 24px;
     }
 
-    .feedback.good {
-      display: block;
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .feedback.bad {
-      display: block;
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .next-row {
-      margin-top: 18px;
+    .overlay.show {
       display: flex;
-      justify-content: flex-end;
+      animation: fadeIn 0.18s ease both;
+    }
+
+    .popup {
+      width: min(440px, 100%);
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      animation: popIn 0.25s cubic-bezier(.2, 1.2, .2, 1) both;
+    }
+
+    .popup-icon {
+      width: 78px;
+      height: 78px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      font-size: 2.2rem;
+      font-weight: 950;
+    }
+
+    .popup-icon.good {
+      background: rgba(34, 197, 94, 0.16);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .popup-icon.bad {
+      background: rgba(239, 68, 68, 0.16);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .popup h2 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: -0.05em;
+    }
+
+    .popup p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .score-big {
+      font-size: clamp(3.4rem, 10vw, 6.5rem);
+      letter-spacing: -0.08em;
+      margin: 8px 0 26px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
     }
 
     .hidden {
       display: none !important;
     }
 
-    .result-screen {
-      text-align: center;
-    }
-
-    .result-box {
-      background: white;
-      border-radius: 30px;
-      padding: 30px;
-      box-shadow: 0 12px 34px rgba(0,0,0,0.12);
-      max-width: 720px;
-      margin: 0 auto;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .result-box h2 {
-      font-size: clamp(2rem, 5vw, 3.4rem);
-      margin: 0 0 8px;
-    }
-
-    .final-score {
-      margin: 22px auto;
-      width: min(360px, 100%);
-      background: linear-gradient(135deg, #f59e0b, #ec4899);
-      color: white;
-      border-radius: 30px;
-      padding: 24px;
-      box-shadow: 0 16px 30px rgba(236,72,153,0.25);
-    }
-
-    .final-score span {
-      display: block;
-      opacity: 0.9;
-      font-weight: 800;
-    }
-
-    .final-score strong {
-      display: block;
-      font-size: clamp(3rem, 10vw, 5rem);
-      line-height: 1;
-      margin-top: 8px;
-    }
-
-    .result-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin: 22px 0;
-    }
-
-    .result-item {
-      background: #f9fafb;
-      border-radius: 18px;
-      padding: 16px;
-      font-weight: 900;
-    }
-
-    .result-item span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.85rem;
-      margin-bottom: 4px;
-    }
-
-    canvas#fireworks {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 999;
-    }
-
-    .pop-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-
-    .pop-overlay.show {
-      display: flex;
-    }
-
-    .pop-card {
-      width: min(640px, 100%);
-      background: white;
-      border-radius: 32px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
-      animation: popIn 0.35s ease;
-    }
-
     @keyframes popIn {
-      from { transform: scale(0.85); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from {
+        transform: scale(0.88) translateY(12px);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
     }
 
-    .score-hint {
-      color: var(--muted);
-      line-height: 1.6;
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    @media (max-width: 760px) {
-      .hero-card {
-        grid-template-columns: 1fr;
+    @media (max-width: 720px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .stats,
-      .result-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .status {
+        width: 100%;
+        justify-content: space-between;
       }
 
-      .options {
-        grid-template-columns: 1fr;
+      .pill {
+        flex: 1;
       }
 
-      header,
       main {
         padding: 20px;
       }
-    }
 
-    @media (max-width: 460px) {
-      .stats,
-      .result-grid,
-      .feature-grid {
-        grid-template-columns: 1fr;
+      .question-card {
+        padding: 22px;
       }
 
-      .quiz-shell {
-        border-radius: 22px;
+      .answers {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 
 <body>
-  <canvas id="fireworks"></canvas>
+  <div class="app">
+    <header>
+      <h1>Das Notenwerte Quiz</h1>
 
-  <div class="page">
-    <div class="quiz-shell">
-      <header>
-        <div class="title-area">
-          <h1>🎵 Notenwerte Quiz 2.0</h1>
-          <p>15 Fragen · gemischte Aufgaben · Feuerwerk bei richtigen Antworten</p>
+      <div class="status">
+        <div class="pill" id="questionCounter">1 / 15</div>
+        <div class="pill">Punkte: <span id="scoreDisplay">0</span></div>
+        <div class="pill timer-pill">
+          <div class="timer-fill" id="timerFill"></div>
+          <span>Zeit: <span id="timerDisplay">10.0</span></span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="start-screen" id="startScreen">
+        <div class="start-box">
+          <h2 class="big-title">Das Notenwerte Quiz</h2>
+          <button class="primary-btn" id="startBtn">Start</button>
+        </div>
+      </section>
+
+      <section class="quiz-screen hidden" id="quizScreen">
+        <div class="progress-wrap">
+          <div class="progress" id="progress"></div>
         </div>
 
-        <div class="badge-row">
-          <div class="badge">⏱️ Uhr läuft</div>
-          <div class="badge">⚡ Zeitpunkte</div>
-          <div class="badge">🎆 Feuerwerk</div>
+        <div class="question-card">
+          <div class="question-top">
+            <div class="question-number" id="questionLabel">Frage</div>
+            <p class="question-text" id="questionText"></p>
+            <div class="notation-area" id="notationArea"></div>
+          </div>
+
+          <div class="answers" id="answers"></div>
         </div>
-      </header>
+      </section>
 
-      <main>
-        <section id="startScreen" class="start-screen active">
-          <div class="hero-card">
-            <div class="hero-text">
-              <h2>Wie gut kennst du Notenwerte?</h2>
-              <p>
-                In jeder Runde bekommst du <strong>15 zufällige Fragen</strong>.
-                Du sammelst Punkte für richtige Antworten und zusätzliche
-                <strong>Zeitpunkte</strong>, wenn du schnell antwortest.
-              </p>
-
-              <div class="feature-grid">
-                <div class="feature">🎼 Notenwerte erkennen</div>
-                <div class="feature">⚖️ Noten vergleichen</div>
-                <div class="feature">🧮 Rhythmen ausrechnen</div>
-                <div class="feature">🥁 4/4-Takt auffüllen</div>
-              </div>
-
-              <div class="start-actions">
-                <button class="btn btn-primary" onclick="startQuiz()">Quiz starten</button>
-                <button class="btn btn-secondary" onclick="showRules()">Regeln anzeigen</button>
-              </div>
-            </div>
-
-            <div class="mascot">
-              <div>
-                <div class="note">♪</div>
-                <strong>Bereit für den Rhythmus?</strong>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="quizScreen" class="quiz-screen">
-          <div class="stats">
-            <div class="stat">
-              <span>Frage</span>
-              <strong id="questionCounter">1 / 15</strong>
-            </div>
-            <div class="stat">
-              <span>Punkte</span>
-              <strong id="scoreDisplay">0</strong>
-            </div>
-            <div class="stat">
-              <span>Zeit</span>
-              <strong id="timeDisplay">0 s</strong>
-            </div>
-            <div class="stat">
-              <span>Streak</span>
-              <strong id="streakDisplay">0 🔥</strong>
-            </div>
-          </div>
-
-          <div class="progress-outer">
-            <div id="progressInner" class="progress-inner"></div>
-          </div>
-
-          <div class="question-card">
-            <div id="typePill" class="type-pill">🎵 Aufgabe</div>
-            <h2 id="questionTitle" class="question-title"></h2>
-
-            <div id="visualArea"></div>
-
-            <div id="options" class="options"></div>
-
-            <div id="feedback" class="feedback"></div>
-
-            <div class="next-row">
-              <button id="nextButton" class="btn btn-primary hidden" onclick="nextQuestion()">
-                Weiter
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section id="resultScreen" class="result-screen">
-          <div class="result-box">
-            <h2>🏆 Runde beendet!</h2>
-            <p class="score-hint">
-              Merke dir deine Gesamtpunktzahl und vergleiche sie mit anderen.
-            </p>
-
-            <div class="final-score">
-              <span>Gesamtpunktzahl</span>
-              <strong id="finalScore">0</strong>
-            </div>
-
-            <div class="result-grid">
-              <div class="result-item">
-                <span>Richtige Antworten</span>
-                <strong id="finalCorrect">0 / 15</strong>
-              </div>
-              <div class="result-item">
-                <span>Zeit</span>
-                <strong id="finalTime">0 s</strong>
-              </div>
-              <div class="result-item">
-                <span>Zeitpunkte</span>
-                <strong id="finalTimePoints">0</strong>
-              </div>
-            </div>
-
-            <button class="btn btn-primary" onclick="startQuiz()">Neue Runde starten</button>
-          </div>
-        </section>
-      </main>
-    </div>
+      <section class="end-screen hidden" id="endScreen">
+        <div class="end-box">
+          <h2 class="big-title">Fertig!</h2>
+          <div class="score-big" id="finalScore">0</div>
+          <button class="primary-btn" id="restartBtn">Nochmal spielen</button>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div id="popOverlay" class="pop-overlay">
-    <div class="pop-card">
-      <h2>🎉 Dein Ergebnis</h2>
-      <p>Deine Gesamtpunktzahl lautet:</p>
-      <div class="final-score">
-        <span>Merken und vergleichen</span>
-        <strong id="popupScore">0</strong>
-      </div>
-      <button class="btn btn-primary" onclick="closePopup()">Schließen</button>
+  <div class="overlay" id="feedbackOverlay">
+    <div class="popup">
+      <div class="popup-icon" id="feedbackIcon">✓</div>
+      <h2 id="feedbackTitle">Richtig!</h2>
+      <p id="feedbackText">+100 Punkte</p>
     </div>
   </div>
 
   <script>
-    const TOTAL_QUESTIONS = 15;
+    const VF = Vex.Flow;
 
-    const notes = [
-      { name: "Ganze Note", symbol: "𝅝", beats: 4 },
-      { name: "Halbe Note", symbol: "𝅗𝅥", beats: 2 },
-      { name: "Viertelnote", symbol: "♩", beats: 1 },
-      { name: "Achtelnote", symbol: "♪", beats: 0.5 },
-      { name: "Sechzehntelnote", symbol: "♬", beats: 0.25 },
-      { name: "punktierte Halbe Note", symbol: "𝅗𝅥.", beats: 3 },
-      { name: "punktierte Viertelnote", symbol: "♩.", beats: 1.5 }
-    ];
+    const MAX_TIME = 10;
+    const BASE_POINTS = 100;
+    const SPEED_MULTIPLIER = 10;
 
-    const beatLabels = {
-      0.25: "¼ Schlag",
-      0.5: "½ Schlag",
-      0.75: "¾ Schlag",
-      1: "1 Schlag",
-      1.25: "1¼ Schläge",
-      1.5: "1½ Schläge",
-      1.75: "1¾ Schläge",
-      2: "2 Schläge",
-      2.5: "2½ Schläge",
-      3: "3 Schläge",
-      3.5: "3½ Schläge",
-      4: "4 Schläge"
-    };
+   let questions = [];
 
-    let questionPool = [];
-    let currentQuestions = [];
-    let currentIndex = 0;
-    let score = 0;
-    let correctCount = 0;
-    let timePoints = 0;
-    let streak = 0;
-    let startTime = 0;
-    let questionStartTime = 0;
-    let timerInterval = null;
-    let answered = false;
+const questionPool = [
+  {
+    type: "text",
+    question: "Wie viele Viertelnoten passen in eine Ganze Note?",
+    answers: ["2", "3", "4", "8"],
+    correct: 2
+  },
+  {
+    type: "text",
+    question: "Wie viele Halbe Noten passen in eine Ganze Note?",
+    answers: ["1", "2", "3", "4"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Wie viele Achtelnoten passen in eine Ganze Note?",
+    answers: ["2", "4", "8", "16"],
+    correct: 2
+  },
+  {
+    type: "text",
+    question: "Wie viele Sechzehntelnoten passen in eine Ganze Note?",
+    answers: ["4", "8", "12", "16"],
+    correct: 3
+  },
+  {
+    type: "text",
+    question: "Wie viele Achtelnoten passen in eine Halbe Note?",
+    answers: ["2", "4", "6", "8"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Wie viele Viertelnoten passen in eine Halbe Note?",
+    answers: ["1", "2", "3", "4"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Wie viele Sechzehntelnoten passen in eine Viertelnote?",
+    answers: ["2", "4", "8", "16"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Wie viele Sechzehntelnoten passen in eine Achtelnote?",
+    answers: ["1", "2", "4", "8"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Welche Notendauern sind genauso lang wie eine Viertelnote?",
+    answers: ["2 Achtelnoten", "4 Achtelnoten", "2 Halbe Noten", "1 Ganze Note"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Notendauern sind genauso lang wie eine Halbe Note?",
+    answers: ["2 Viertelnoten", "2 Achtelnoten", "4 Sechzehntelnoten", "1 Viertelnote"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Notendauern sind genauso lang wie eine Ganze Note?",
+    answers: ["2 Viertelnoten", "4 Viertelnoten", "4 Achtelnoten", "8 Sechzehntelnoten"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Welche Kombination ergibt genau eine Viertelnote?",
+    answers: ["2 Achtelnoten", "2 Viertelnoten", "1 Halbe Note", "1 Ganze Note"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Kombination ergibt genau eine Halbe Note?",
+    answers: ["2 Viertelnoten", "2 Ganze Noten", "2 Halbe Noten", "2 Sechzehntelnoten"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Kombination ergibt genau eine Ganze Note?",
+    answers: ["2 Viertelnoten", "4 Viertelnoten", "4 Sechzehntelnoten", "2 Achtelnoten"],
+    correct: 1
+  },
+  {
+    type: "text",
+    question: "Welche Note dauert am längsten?",
+    answers: ["Ganze Note", "Viertelnote", "Achtelnote", "Sechzehntelnote"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Note dauert am kürzesten?",
+    answers: ["Ganze Note", "Halbe Note", "Achtelnote", "Sechzehntelnote"],
+    correct: 3
+  },
+  {
+    type: "text",
+    question: "Welche Notendauer ist länger?",
+    answers: ["Achtelnote", "Sechzehntelnote", "Beide gleich lang", "Keine von beiden"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Notendauer ist länger?",
+    answers: ["Viertelnote", "Achtelnote", "Beide gleich lang", "Sechzehntelnote"],
+    correct: 0
+  },
+  {
+    type: "text",
+    question: "Welche Notendauer ist kürzer?",
+    answers: ["Halbe Note", "Viertelnote", "Ganze Note", "Alle gleich lang"],
+    correct: 1
+  },
+
+  {
+    type: "note",
+    question: "Was ist das für ein Notenwert?",
+    notation: { notes: ["w"], time: null },
+    answers: ["Ganze Note", "Halbe Note", "Viertelnote", "Achtelnote"],
+    correct: 0
+  },
+  {
+    type: "note",
+    question: "Was ist das für ein Notenwert?",
+    notation: { notes: ["h"], time: null },
+    answers: ["Ganze Note", "Halbe Note", "Achtelnote", "Sechzehntelnote"],
+    correct: 1
+  },
+  {
+    type: "note",
+    question: "Was ist das für ein Notenwert?",
+    notation: { notes: ["q"], time: null },
+    answers: ["Halbe Note", "Viertelnote", "Achtelnote", "Sechzehntelnote"],
+    correct: 1
+  },
+  {
+    type: "note",
+    question: "Was ist das für ein Notenwert?",
+    notation: { notes: ["8"], time: null },
+    answers: ["Achtelnote", "Viertelnote", "Halbe Note", "Ganze Note"],
+    correct: 0
+  },
+  {
+    type: "note",
+    question: "Was ist das für ein Notenwert?",
+    notation: { notes: ["16"], time: null },
+    answers: ["Achtelnote", "Sechzehntelnote", "Viertelnote", "Ganze Note"],
+    correct: 1
+  },
+
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["q", "q", "q"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Eine Achtelnote", "Eine Ganze Note"],
+    correct: 0
+  },
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["h", "q"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Eine Achtelnote", "Eine Ganze Note"],
+    correct: 0
+  },
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["q", "q"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Eine Achtelnote", "Eine Ganze Note"],
+    correct: 1
+  },
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["h"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Eine Achtelnote", "Eine Sechzehntelnote"],
+    correct: 1
+  },
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["q"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Drei Viertelnoten", "Eine Achtelnote"],
+    correct: 2
+  },
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["8", "8", "q", "q"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Eine Achtelnote", "Eine Ganze Note"],
+    correct: 0
+  },
+  {
+    type: "measure",
+    question: "Was fehlt, damit der 4/4-Takt vollständig ist?",
+    notation: { notes: ["8", "8", "h"], time: "4/4" },
+    answers: ["Eine Viertelnote", "Eine Halbe Note", "Eine Ganze Note", "Eine Sechzehntelnote"],
+    correct: 0
+  }
+];
+
+function shuffleArray(array) {
+  const copy = [...array];
+
+  for (let i = copy.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
+  }
+
+  return copy;
+}
 
     const startScreen = document.getElementById("startScreen");
     const quizScreen = document.getElementById("quizScreen");
-    const resultScreen = document.getElementById("resultScreen");
+    const endScreen = document.getElementById("endScreen");
+
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
 
     const questionCounter = document.getElementById("questionCounter");
     const scoreDisplay = document.getElementById("scoreDisplay");
-    const timeDisplay = document.getElementById("timeDisplay");
-    const streakDisplay = document.getElementById("streakDisplay");
-    const progressInner = document.getElementById("progressInner");
-    const typePill = document.getElementById("typePill");
-    const questionTitle = document.getElementById("questionTitle");
-    const visualArea = document.getElementById("visualArea");
-    const optionsEl = document.getElementById("options");
-    const feedback = document.getElementById("feedback");
-    const nextButton = document.getElementById("nextButton");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const timerFill = document.getElementById("timerFill");
+    const progress = document.getElementById("progress");
+
+    const questionLabel = document.getElementById("questionLabel");
+    const questionText = document.getElementById("questionText");
+    const notationArea = document.getElementById("notationArea");
+    const answersEl = document.getElementById("answers");
+
+    const feedbackOverlay = document.getElementById("feedbackOverlay");
+    const feedbackIcon = document.getElementById("feedbackIcon");
+    const feedbackTitle = document.getElementById("feedbackTitle");
+    const feedbackText = document.getElementById("feedbackText");
 
     const finalScore = document.getElementById("finalScore");
-    const finalCorrect = document.getElementById("finalCorrect");
-    const finalTime = document.getElementById("finalTime");
-    const finalTimePoints = document.getElementById("finalTimePoints");
-    const popupScore = document.getElementById("popupScore");
-    const popOverlay = document.getElementById("popOverlay");
 
-    function formatBeats(value) {
-      return beatLabels[value] || value + " Schläge";
-    }
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLeft = MAX_TIME;
+    let timer = null;
+    let locked = false;
 
-    function shuffle(array) {
-      return [...array].sort(() => Math.random() - 0.5);
-    }
-
-    function randomFrom(array) {
-      return array[Math.floor(Math.random() * array.length)];
-    }
-
-    function uniqueOptions(correct, options, amount = 4) {
-      const result = [correct];
-
-      shuffle(options).forEach(option => {
-        if (!result.includes(option) && result.length < amount) {
-          result.push(option);
-        }
-      });
-
-      return shuffle(result);
-    }
-
-    function makeQuestion(type, title, visual, correctAnswer, options, explanation) {
-      return {
-        type,
-        title,
-        visual,
-        correctAnswer,
-        options: uniqueOptions(correctAnswer, options),
-        explanation
-      };
-    }
-
-    function buildQuestionPool() {
-      const pool = [];
-
-      const allBeatOptions = [
-        "¼ Schlag", "½ Schlag", "1 Schlag", "1½ Schläge",
-        "2 Schläge", "3 Schläge", "4 Schläge"
-      ];
-
-      const allNameOptions = notes.map(n => n.name);
-
-      notes.forEach(note => {
-        pool.push(makeQuestion(
-          "🎵 Notenwert erkennen",
-          `Wie viele Schläge dauert die ${note.name}?`,
-          `<div class="big-note">${note.symbol}</div>`,
-          formatBeats(note.beats),
-          allBeatOptions,
-          `${note.name} dauert ${formatBeats(note.beats)}.`
-        ));
-
-        pool.push(makeQuestion(
-          "🔎 Note finden",
-          `Welche Note dauert ${formatBeats(note.beats)}?`,
-          "",
-          note.name,
-          allNameOptions,
-          `${formatBeats(note.beats)} gehört zu: ${note.name}.`
-        ));
-      });
-
-      for (let i = 0; i < notes.length; i++) {
-        for (let j = 0; j < notes.length; j++) {
-          if (i !== j) {
-            const a = notes[i];
-            const b = notes[j];
-
-            if (a.beats !== b.beats) {
-              const correct = a.beats > b.beats ? a.name : b.name;
-
-              pool.push(makeQuestion(
-                "⚖️ Vergleichen",
-                `Welche Note dauert länger?`,
-                `<div class="measure">
-                  <div class="measure-note">${a.symbol}<br><small>${a.name}</small></div>
-                  <strong>oder</strong>
-                  <div class="measure-note">${b.symbol}<br><small>${b.name}</small></div>
-                </div>`,
-                correct,
-                allNameOptions,
-                `${correct} dauert länger.`
-              ));
-            }
-          }
-        }
-      }
-
-      const sumCombos = [
-        ["Viertelnote", "Viertelnote"],
-        ["Halbe Note", "Viertelnote"],
-        ["Halbe Note", "Halbe Note"],
-        ["Ganze Note"],
-        ["Achtelnote", "Achtelnote"],
-        ["Achtelnote", "Achtelnote", "Viertelnote"],
-        ["Viertelnote", "Achtelnote", "Achtelnote"],
-        ["punktierte Halbe Note", "Viertelnote"],
-        ["punktierte Viertelnote", "Achtelnote"],
-        ["punktierte Viertelnote", "punktierte Viertelnote"],
-        ["Sechzehntelnote", "Sechzehntelnote", "Achtelnote"],
-        ["Viertelnote", "Sechzehntelnote", "Sechzehntelnote", "Achtelnote"],
-        ["Halbe Note", "Achtelnote", "Achtelnote"],
-        ["Achtelnote", "Achtelnote", "Achtelnote", "Achtelnote"],
-        ["Viertelnote", "Viertelnote", "Achtelnote", "Achtelnote"],
-        ["Halbe Note", "punktierte Viertelnote", "Achtelnote"],
-        ["punktierte Halbe Note", "Achtelnote", "Achtelnote"],
-        ["Viertelnote", "Viertelnote", "Viertelnote"],
-        ["Halbe Note", "Viertelnote", "Achtelnote"],
-        ["Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote"]
-      ];
-
-      sumCombos.forEach(combo => {
-        const comboNotes = combo.map(name => notes.find(n => n.name === name));
-        const sum = comboNotes.reduce((acc, n) => acc + n.beats, 0);
-        const visual = `
-          <div class="measure">
-            ${comboNotes.map(n => `<div class="measure-note">${n.symbol}<br><small>${n.name}</small></div>`).join("")}
-          </div>
-        `;
-
-        pool.push(makeQuestion(
-          "🧮 Zusammenrechnen",
-          "Wie viele Schläge dauern diese Noten zusammen?",
-          visual,
-          formatBeats(sum),
-          Object.values(beatLabels),
-          `Zusammen ergeben die Noten ${formatBeats(sum)}.`
-        ));
-      });
-
-      const fillCombos = [
-        { names: ["Halbe Note", "Viertelnote"], missing: 1 },
-        { names: ["Viertelnote", "Viertelnote"], missing: 2 },
-        { names: ["punktierte Halbe Note"], missing: 1 },
-        { names: ["Halbe Note"], missing: 2 },
-        { names: ["Viertelnote"], missing: 3 },
-        { names: ["Achtelnote", "Achtelnote", "Viertelnote"], missing: 2 },
-        { names: ["punktierte Viertelnote", "Achtelnote"], missing: 2 },
-        { names: ["Halbe Note", "Achtelnote", "Achtelnote"], missing: 1 },
-        { names: ["Viertelnote", "Achtelnote", "Achtelnote"], missing: 2 },
-        { names: ["Sechzehntelnote", "Sechzehntelnote", "Achtelnote"], missing: 3.5 },
-        { names: ["punktierte Viertelnote"], missing: 2.5 },
-        { names: ["Achtelnote", "Achtelnote"], missing: 3 },
-        { names: ["Viertelnote", "Viertelnote", "Viertelnote"], missing: 1 },
-        { names: ["Halbe Note", "punktierte Viertelnote"], missing: 0.5 },
-        { names: ["punktierte Halbe Note", "Achtelnote"], missing: 0.5 },
-        { names: ["Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote", "Sechzehntelnote"], missing: 3 }
-      ];
-
-      fillCombos.forEach(item => {
-        const comboNotes = item.names.map(name => notes.find(n => n.name === name));
-        const visual = `
-          <div class="measure">
-            <strong>|</strong>
-            ${comboNotes.map(n => `<div class="measure-note">${n.symbol}<br><small>${n.name}</small></div>`).join("")}
-            <div class="measure-note measure-missing">?</div>
-            <strong>|</strong>
-          </div>
-        `;
-
-        pool.push(makeQuestion(
-          "🥁 4/4-Takt auffüllen",
-          "Welche Notenlänge fehlt, damit der Takt genau 4 Schläge hat?",
-          visual,
-          formatBeats(item.missing),
-          Object.values(beatLabels),
-          `Ein 4/4-Takt hat 4 Schläge. Es fehlen ${formatBeats(item.missing)}.`
-        ));
-      });
-
-      const trueFalseItems = [
-        ["Eine Ganze Note dauert 4 Schläge.", "Richtig"],
-        ["Eine Halbe Note dauert 4 Schläge.", "Falsch"],
-        ["Zwei Viertelnoten dauern zusammen 2 Schläge.", "Richtig"],
-        ["Vier Achtelnoten dauern zusammen 1 Schlag.", "Falsch"],
-        ["Eine punktierte Halbe Note dauert 3 Schläge.", "Richtig"],
-        ["Eine Achtelnote dauert einen halben Schlag.", "Richtig"],
-        ["Eine Sechzehntelnote dauert 2 Schläge.", "Falsch"],
-        ["Zwei halbe Noten füllen einen 4/4-Takt.", "Richtig"],
-        ["Eine Viertelnote und zwei Achtelnoten dauern zusammen 2 Schläge.", "Richtig"],
-        ["Eine punktierte Viertelnote dauert 3 Schläge.", "Falsch"]
-      ];
-
-      trueFalseItems.forEach(item => {
-        pool.push(makeQuestion(
-          "✅ Richtig oder falsch?",
-          item[0],
-          "",
-          item[1],
-          ["Richtig", "Falsch"],
-          `Die Aussage ist: ${item[1]}.`
-        ));
-      });
-
-      return pool;
-    }
-
-    function showRules() {
-      alert(
-        "Regeln:\n\n" +
-        "• Eine Runde hat 15 Fragen.\n" +
-        "• Richtige Antworten geben 100 Grundpunkte.\n" +
-        "• Wenn du schnell antwortest, bekommst du bis zu 100 zusätzliche Zeitpunkte.\n" +
-        "• Bei jeder richtigen Antwort gibt es ein kleines Feuerwerk.\n" +
-        "• Am Ende bekommst du deine Gesamtpunktzahl."
-      );
-    }
+    startBtn.addEventListener("click", startQuiz);
+    restartBtn.addEventListener("click", startQuiz);
 
     function startQuiz() {
-      questionPool = buildQuestionPool();
+  questions = shuffleArray(questionPool).slice(0, 15);
 
-      currentQuestions = shuffle(questionPool).slice(0, TOTAL_QUESTIONS);
-      currentIndex = 0;
-      score = 0;
-      correctCount = 0;
-      timePoints = 0;
-      streak = 0;
-      answered = false;
+  currentQuestion = 0;
+  score = 0;
+  scoreDisplay.textContent = score;
 
-      startScreen.classList.remove("active");
-      resultScreen.classList.remove("active");
-      quizScreen.classList.add("active");
+  startScreen.classList.add("hidden");
+  endScreen.classList.add("hidden");
+  quizScreen.classList.remove("hidden");
 
-      startTime = Date.now();
-
-      clearInterval(timerInterval);
-      timerInterval = setInterval(updateTimer, 500);
-
-      updateStats();
-      showQuestion();
-    }
-
-    function updateTimer() {
-      const seconds = Math.floor((Date.now() - startTime) / 1000);
-      timeDisplay.textContent = seconds + " s";
-    }
-
-    function updateStats() {
-      questionCounter.textContent = `${Math.min(currentIndex + 1, TOTAL_QUESTIONS)} / ${TOTAL_QUESTIONS}`;
-      scoreDisplay.textContent = score;
-      streakDisplay.textContent = streak + " 🔥";
-      progressInner.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
-      updateTimer();
-    }
+  showQuestion();
+}
 
     function showQuestion() {
-      answered = false;
-      questionStartTime = Date.now();
+      locked = false;
+      clearInterval(timer);
 
-      const q = currentQuestions[currentIndex];
+      const q = questions[currentQuestion];
 
-      typePill.textContent = q.type;
-      questionTitle.textContent = q.title;
-      visualArea.innerHTML = q.visual || "";
-      optionsEl.innerHTML = "";
-      feedback.className = "feedback";
-      feedback.textContent = "";
-      nextButton.classList.add("hidden");
+      questionCounter.textContent = `${currentQuestion + 1} / ${questions.length}`;
+      questionLabel.textContent = `Frage ${currentQuestion + 1}`;
+      questionText.textContent = q.question;
+      progress.style.width = `${(currentQuestion / questions.length) * 100}%`;
 
-      q.options.forEach(optionText => {
-        const button = document.createElement("button");
-        button.className = "option";
-        button.textContent = optionText;
-        button.onclick = () => chooseAnswer(button, optionText);
-        optionsEl.appendChild(button);
+      answersEl.innerHTML = "";
+      notationArea.innerHTML = "";
+      notationArea.classList.remove("active");
+
+      if (q.notation) {
+        notationArea.classList.add("active");
+        setTimeout(() => drawNotation(q.notation), 30);
+      }
+
+      q.answers.forEach((answer, index) => {
+        const btn = document.createElement("button");
+        btn.className = "answer";
+        btn.textContent = answer;
+        btn.addEventListener("click", () => chooseAnswer(index));
+        answersEl.appendChild(btn);
       });
 
-      updateStats();
+      startTimer();
     }
 
-    function chooseAnswer(button, selected) {
-      if (answered) return;
-      answered = true;
+    function startTimer() {
+      timeLeft = MAX_TIME;
+      updateTimerDisplay();
 
-      const q = currentQuestions[currentIndex];
-      const buttons = document.querySelectorAll(".option");
+      timer = setInterval(() => {
+        timeLeft -= 0.1;
 
-      buttons.forEach(btn => {
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          updateTimerDisplay();
+          clearInterval(timer);
+          chooseAnswer(null);
+          return;
+        }
+
+        updateTimerDisplay();
+      }, 100);
+    }
+
+    function updateTimerDisplay() {
+      timerDisplay.textContent = timeLeft.toFixed(1);
+      timerFill.style.width = `${(timeLeft / MAX_TIME) * 100}%`;
+
+      if (timeLeft <= 3) {
+        timerFill.style.background = "rgba(239, 68, 68, 0.28)";
+      } else {
+        timerFill.style.background = "linear-gradient(90deg, rgba(56, 189, 248, 0.24), rgba(167, 139, 250, 0.24))";
+      }
+    }
+
+    function chooseAnswer(selectedIndex) {
+      if (locked) return;
+      locked = true;
+      clearInterval(timer);
+
+      const q = questions[currentQuestion];
+      const buttons = [...document.querySelectorAll(".answer")];
+
+      buttons.forEach((btn, index) => {
         btn.disabled = true;
 
-        if (btn.textContent === q.correctAnswer) {
+        if (index === q.correct) {
           btn.classList.add("correct");
+        }
+
+        if (selectedIndex === index && selectedIndex !== q.correct) {
+          btn.classList.add("wrong");
         }
       });
 
-      const isCorrect = selected === q.correctAnswer;
+      const isCorrect = selectedIndex === q.correct;
+      let gained = 0;
 
       if (isCorrect) {
-        const secondsForQuestion = (Date.now() - questionStartTime) / 1000;
-        const bonus = Math.max(0, Math.round(100 - secondsForQuestion * 7));
-        const streakBonus = Math.min(streak * 10, 50);
-
-        streak++;
-        correctCount++;
-        timePoints += bonus;
-        score += 100 + bonus + streakBonus;
-
-        button.classList.add("correct");
-        feedback.className = "feedback good";
-        feedback.textContent = `Richtig! +100 Punkte, +${bonus} Zeitpunkte${streakBonus ? `, +${streakBonus} Streak-Bonus` : ""}. ${q.explanation}`;
-
-        launchFireworks();
-      } else {
-        streak = 0;
-        button.classList.add("wrong");
-        feedback.className = "feedback bad";
-        feedback.textContent = `Noch nicht ganz. Die richtige Antwort ist: ${q.correctAnswer}. ${q.explanation}`;
+        gained = BASE_POINTS + Math.round(timeLeft * SPEED_MULTIPLIER);
+        score += gained;
+        scoreDisplay.textContent = score;
       }
 
-      updateStats();
-      nextButton.classList.remove("hidden");
+      showFeedback(isCorrect, gained);
+
+      setTimeout(() => {
+        hideFeedback();
+        currentQuestion++;
+
+        if (currentQuestion >= questions.length) {
+          finishQuiz();
+        } else {
+          showQuestion();
+        }
+      }, 1150);
     }
 
-    function nextQuestion() {
-      currentIndex++;
+    function showFeedback(isCorrect, gained) {
+      feedbackOverlay.classList.add("show");
 
-      if (currentIndex >= TOTAL_QUESTIONS) {
-        finishQuiz();
+      if (isCorrect) {
+        feedbackIcon.textContent = "✓";
+        feedbackIcon.className = "popup-icon good";
+        feedbackTitle.textContent = "Richtig!";
+        feedbackText.textContent = `+${gained} Punkte`;
       } else {
-        showQuestion();
+        feedbackIcon.textContent = "×";
+        feedbackIcon.className = "popup-icon bad";
+        feedbackTitle.textContent = "Nicht ganz!";
+        feedbackText.textContent = "0 Punkte";
       }
+    }
+
+    function hideFeedback() {
+      feedbackOverlay.classList.remove("show");
     }
 
     function finishQuiz() {
-      clearInterval(timerInterval);
-
-      const totalTime = Math.floor((Date.now() - startTime) / 1000);
-
-      quizScreen.classList.remove("active");
-      resultScreen.classList.add("active");
-
-      progressInner.style.width = "100%";
-
+      clearInterval(timer);
+      quizScreen.classList.add("hidden");
+      endScreen.classList.remove("hidden");
+      progress.style.width = "100%";
       finalScore.textContent = score;
-      finalCorrect.textContent = `${correctCount} / ${TOTAL_QUESTIONS}`;
-      finalTime.textContent = totalTime + " s";
-      finalTimePoints.textContent = timePoints;
-      popupScore.textContent = score;
-
-      setTimeout(() => {
-        popOverlay.classList.add("show");
-        launchFireworks();
-        setTimeout(launchFireworks, 400);
-        setTimeout(launchFireworks, 800);
-      }, 500);
     }
 
-    function closePopup() {
-      popOverlay.classList.remove("show");
-    }
+    function drawNotation(config) {
+      notationArea.innerHTML = "";
 
-    const canvas = document.getElementById("fireworks");
-    const ctx = canvas.getContext("2d");
-    let particles = [];
+      const width = Math.min(760, notationArea.clientWidth - 16);
+      const height = 150;
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+      const renderer = new VF.Renderer(notationArea, VF.Renderer.Backends.SVG);
+      renderer.resize(width, height);
 
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
+      const context = renderer.getContext();
+      context.setFont("Arial", 10);
 
-    function launchFireworks() {
-      const colors = ["#f97316", "#22c55e", "#06b6d4", "#ec4899", "#a855f7", "#fde047"];
-      const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
-      const y = Math.random() * canvas.height * 0.45 + canvas.height * 0.1;
+      const staveWidth = Math.max(260, width - 30);
+      const stave = new VF.Stave(14, 28, staveWidth);
 
-      for (let i = 0; i < 70; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5 + 2;
+      stave.addClef("treble");
 
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 70,
-          color: randomFrom(colors),
-          size: Math.random() * 4 + 2
+      if (config.time) {
+        stave.addTimeSignature(config.time);
+      }
+
+      stave.setContext(context).draw();
+
+      const notes = config.notes.map((duration, index) => {
+        const pitches = ["c/4", "d/4", "e/4", "f/4", "g/4"];
+        return new VF.StaveNote({
+          keys: [pitches[index % pitches.length]],
+          duration
         });
+      });
+
+      notes.forEach(note => {
+        if (note.getDuration() === "8" || note.getDuration() === "16") {
+          VF.Beam.generateBeams([note]).forEach(beam => beam.setContext(context).draw());
+        }
+      });
+
+      const voice = new VF.Voice({
+        num_beats: 4,
+        beat_value: 4
+      });
+
+      voice.setStrict(false);
+      voice.addTickables(notes);
+
+      new VF.Formatter()
+        .joinVoices([voice])
+        .format([voice], staveWidth - 95);
+
+      voice.draw(context, stave);
+
+      if (config.time === "4/4") {
+        drawMissingBox(context, stave, notes.length);
       }
     }
 
-    function animateFireworks() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function drawMissingBox(context, stave, noteCount) {
+      const startX = stave.getX() + stave.getWidth() - 90;
+      const y = stave.getY() + 42;
 
-      particles = particles.filter(p => p.life > 0);
+      context.save();
+      context.setStrokeStyle("#38bdf8");
+      context.setFillStyle("rgba(56, 189, 248, 0.10)");
+      context.setLineWidth(2);
 
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.045;
-        p.life--;
+      context.beginPath();
+      context.rect(startX, y, 54, 38);
+      context.fill();
+      context.stroke();
 
-        ctx.globalAlpha = p.life / 70;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      ctx.globalAlpha = 1;
-      requestAnimationFrame(animateFireworks);
+      context.setFillStyle("#0f172a");
+      context.setFont("Arial", 22, "bold");
+      context.fillText("?", startX + 21, y + 27);
+      context.restore();
     }
-
-    animateFireworks();
   </script>
 </body>
 </html>
