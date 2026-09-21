@@ -31,39 +31,6 @@
   letter-spacing: -0.03em;
 }
 
-.highscore-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.highscore-entry {
-  display: grid;
-  grid-template-columns: 40px 1fr auto;
-  gap: 12px;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 12px 14px;
-  font-size: 1rem;
-  color: var(--text);
-}
-
-.highscore-rank {
-  font-weight: 900;
-  color: var(--accent);
-}
-
-.highscore-name {
-  font-weight: 800;
-  text-align: left;
-}
-
-.highscore-score {
-  font-weight: 900;
-  color: var(--white);
-}
 
     * {
       box-sizing: border-box;
@@ -521,6 +488,112 @@
   margin: 0;
 }
 
+.highscore-area {
+  margin: 20px auto 28px;
+  width: min(520px, 100%);
+}
+
+.highscore-title {
+  font-size: 1.25rem;
+  margin: 0 0 12px;
+  color: var(--text);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+
+.highscore-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.highscore-entry {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.highscore-rank {
+  font-weight: 950;
+  color: var(--accent);
+  text-align: left;
+}
+
+.highscore-name {
+  font-weight: 850;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highscore-score {
+  font-weight: 950;
+  color: var(--white);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.no-highscores {
+  color: var(--muted);
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
+
+#nameOverlay {
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.24), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(167, 139, 250, 0.22), transparent 35%),
+    rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(16px);
+}
+
+.name-popup {
+  width: min(420px, 92vw);
+  display: grid;
+  gap: 18px;
+  text-align: center;
+}
+
+.name-popup h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  letter-spacing: -0.04em;
+}
+
+.name-input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 16px 18px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  outline: none;
+  text-align: center;
+}
+
+.name-input::placeholder {
+  color: var(--muted);
+}
+
+.name-input:focus {
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.14);
+}
+
   </style>
 </head>
 
@@ -534,7 +607,7 @@
         <div class="pill">Punkte: <span id="scoreDisplay">0</span></div>
         <div class="pill timer-pill">
           <div class="timer-fill" id="timerFill"></div>
-          <span>Zeit: <span id="timerDisplay">10.0</span></span>
+          <span>Zeit: <span id="timerDisplay">20.0</span></span>
         </div>
       </div>
     </header>
