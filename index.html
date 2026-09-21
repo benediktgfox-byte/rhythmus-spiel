@@ -23,6 +23,48 @@
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
     }
 
+.highscore-title {
+  font-size: 1.4rem;
+  margin-top: 26px;
+  margin-bottom: 14px;
+  color: var(--text);
+  letter-spacing: -0.03em;
+}
+
+.highscore-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.highscore-entry {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.highscore-rank {
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.highscore-name {
+  font-weight: 800;
+  text-align: left;
+}
+
+.highscore-score {
+  font-weight: 900;
+  color: var(--white);
+}
+
     * {
       box-sizing: border-box;
     }
@@ -456,7 +498,7 @@
   <script>
     const VF = Vex.Flow;
 
-    const MAX_TIME = 10;
+    const MAX_TIME = 20;
     const BASE_POINTS = 100;
     const SPEED_MULTIPLIER = 10;
 
@@ -706,11 +748,20 @@ function shuffleArray(array) {
     let timeLeft = MAX_TIME;
     let timer = null;
     let locked = false;
+    let playerName = "";
 
     startBtn.addEventListener("click", startQuiz);
     restartBtn.addEventListener("click", startQuiz);
 
     function startQuiz() {
+  playerName = prompt("Wie heißt du?");
+
+  if (!playerName || playerName.trim() === "") {
+    playerName = "Unbekannt";
+  }
+
+  playerName = playerName.trim().substring(0, 18);
+
   questions = shuffleArray(questionPool).slice(0, 15);
 
   currentQuestion = 0;
@@ -849,12 +900,66 @@ function shuffleArray(array) {
     }
 
     function finishQuiz() {
-      clearInterval(timer);
-      quizScreen.classList.add("hidden");
-      endScreen.classList.remove("hidden");
-      progress.style.width = "100%";
-      finalScore.textContent = score;
-    }
+  clearInterval(timer);
+
+  saveHighscore(playerName, score);
+
+  quizScreen.classList.add("hidden");
+  endScreen.classList.remove("hidden");
+  progress.style.width = "100%";
+
+  finalScore.innerHTML = `
+    <div>${score}</div>
+    <div class="highscore-title">Highscores</div>
+    ${createHighscoreHTML()}
+  `;
+}
+
+function getHighscores() {
+  const savedScores = localStorage.getItem("notenwerteQuizHighscores");
+
+  if (!savedScores) {
+    return [];
+  }
+
+  return JSON.parse(savedScores);
+}
+
+function saveHighscore(name, points) {
+  const highscores = getHighscores();
+
+  highscores.push({
+    name: name,
+    score: points,
+    date: new Date().toLocaleDateString("de-DE")
+  });
+
+  highscores.sort((a, b) => b.score - a.score);
+
+  const topFive = highscores.slice(0, 5);
+
+  localStorage.setItem("notenwerteQuizHighscores", JSON.stringify(topFive));
+}
+
+function createHighscoreHTML() {
+  const highscores = getHighscores();
+
+  if (highscores.length === 0) {
+    return "<p>Noch keine Highscores vorhanden.</p>";
+  }
+
+  return `
+    <div class="highscore-list">
+      ${highscores.map((entry, index) => `
+        <div class="highscore-entry">
+          <span class="highscore-rank">${index + 1}.</span>
+          <span class="highscore-name">${entry.name}</span>
+          <span class="highscore-score">${entry.score} Punkte</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
 
     function drawNotation(config) {
       notationArea.innerHTML = "";
