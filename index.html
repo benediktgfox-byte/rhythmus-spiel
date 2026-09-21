@@ -435,6 +435,92 @@
         grid-template-columns: 1fr;
       }
     }
+
+.name-popup {
+  display: grid;
+  gap: 18px;
+}
+
+.name-input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 16px 18px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  outline: none;
+  text-align: center;
+}
+
+.name-input::placeholder {
+  color: var(--muted);
+}
+
+.name-input:focus {
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.14);
+}
+
+.highscore-area {
+  margin: 18px 0 28px;
+  width: 100%;
+}
+
+.highscore-title {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.highscore-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.highscore-entry {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+  color: var(--text);
+}
+
+.highscore-rank {
+  font-weight: 950;
+  color: var(--accent);
+  text-align: left;
+}
+
+.highscore-name {
+  font-weight: 850;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highscore-score {
+  font-weight: 950;
+  color: var(--white);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.no-highscores {
+  color: var(--muted);
+  font-weight: 700;
+  margin: 0;
+}
+
   </style>
 </head>
 
@@ -481,11 +567,34 @@
         <div class="end-box">
           <h2 class="big-title">Fertig!</h2>
           <div class="score-big" id="finalScore">0</div>
-          <button class="primary-btn" id="restartBtn">Nochmal spielen</button>
+
+<div class="highscore-area">
+  <div class="highscore-title">Highscores</div>
+  <div id="highscoreContainer"></div>
+</div>
+
+<button class="primary-btn" id="restartBtn">Nochmal spielen</button>
         </div>
       </section>
     </main>
   </div>
+
+<div class="overlay" id="nameOverlay">
+  <div class="popup name-popup">
+    <h2>Dein Name</h2>
+
+    <input
+      type="text"
+      id="nameInput"
+      class="name-input"
+      maxlength="18"
+      placeholder="Name eingeben"
+      autocomplete="off"
+    />
+
+    <button class="primary-btn" id="confirmNameBtn">Quiz starten</button>
+  </div>
+</div>
 
   <div class="overlay" id="feedbackOverlay">
     <div class="popup">
@@ -743,12 +852,21 @@ function shuffleArray(array) {
 
     const finalScore = document.getElementById("finalScore");
 
+const highscoreContainer = document.getElementById("highscoreContainer");
+
+const nameOverlay = document.getElementById("nameOverlay");
+const nameInput = document.getElementById("nameInput");
+const confirmNameBtn = document.getElementById("confirmNameBtn");
+
     let currentQuestion = 0;
     let score = 0;
     let timeLeft = MAX_TIME;
     let timer = null;
     let locked = false;
     let playerName = "";
+
+let pendingLevel = 1;
+let currentLevel = 1;
 
     startBtn.addEventListener("click", startQuiz);
     restartBtn.addEventListener("click", startQuiz);
